@@ -1,178 +1,244 @@
  const { cmd } = require('../command');
+const axios = require('axios');
+const fs = require('fs');
+const { promisify } = require('util');
+const writeFileAsync = promisify(fs.writeFile);
 
 cmd({
-    pattern: "music",
+    pattern: "play",
     desc: "Search and download music from YouTube",
     react: "🎵",
     category: "media",
     filename: __filename
 },
-async (conn, mek, m, { from, reply, text, sender }) => {
+async (conn, mek, m, { from, reply, text }) => {
     try {
-        // Initialize search cache if not exists
-        if (!global.musicCache) global.musicCache = {};
-        
-        const userId = sender;
-        
-        // If no text provided, show help
         if (!text) {
-            const helpMsg = `
+            const help = `
 🎵 *MUSIC DOWNLOADER* 🎵
 
-*Usage:*
-• .music [song name] - Search music
-• .music [number] - Download selected
-
+*Usage:* .play [song name/artist]
 *Examples:*
-• .music diamond waah
-• .music rayvanny kwetu
-• .music jux you
+• .play diamond platnumz waah
+• .play harmonize never give up
+• .play jux you
+• .play rayvanny kwetu
 
-*Note:* Downloads MP3 from YouTube
-Powered by ytdl-core
+*Features:*
+• Search and download music
+• Multiple quality options
+• Get song information
+• Fast download
+
+*Note:* Music is downloaded from YouTube.
 `;
-            return reply(helpMsg);
+            return reply(help);
         }
+
+        // Show searching message
+        await reply(`🔍 *Searching for:* "${text}"\n⏳ Please wait...`);
+
+        // Step 1: Search for music
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(text)}+music+official&type=video&key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&maxResults=5`;
         
-        // Check if user is selecting from previous search (text is a number)
-        if (!isNaN(text) && text >= 1 && text <= 5) {
-            const index = parseInt(text) - 1;
-            const cache = global.musicCache[userId];
-            
-            if (!cache || !cache.results || !cache.results[index]) {
-                return reply("❌ No search found or selection expired.\nSearch again using: .music [song name]");
+        const searchResponse = await axios.get(searchUrl);
+        const videos = searchResponse.data.items;
+        
+        if (!videos || videos.length === 0) {
+            return reply(`❌ No results found for "${text}"\nTry different keywords.`);
+        }
+
+        // Prepare search results
+        let resultsList = `🎵 *SEARCH RESULTS*\n\n`;
+        videos.forEach((video, index) => {
+            const title = video.snippet.title;
+            const channel = video.snippet.channelTitle;
+            resultsList += `${index + 1}. ${title}\n   👤 ${channel}\n\n`;
+        });
+        
+        resultsList += `*Reply with:* .play [number]\nExample: .play 1`;
+        
+        // Store search results for this user
+        const userId = m.sender;
+        global.searchCache = global.searchCache || {};
+        global.searchCache[userId] = {
+            videos: videos,
+            query: text,
+            timestamp: Date.now()
+        };
+
+        // Clean old cache after 5 minutes
+        setTimeout(() => {
+            if (global.searchCache && global.searchCache[userId]) {
+                delete global.searchCache[userId];
             }
+        }, 300000);
+
+        await reply(resultsList);
+
+    } catch (e) {
+        console.error("Search error:", e);
+        await reply(`❌ Search failed\nError: ${e.message || "Unknown error"}`);
+    }
+});
+
+// Handle selection and download
+cmd({
+    pattern: "play",
+    desc: "Download selected music",
+    react: "⬇️",
+    category: "media",
+    filename: __filename
+},
+async (conn, mek, m, { from, reply, text, sender }) => {
+    try {
+        // Check if user is selecting from search results
+        const userId = sender;
+        const cache = global.searchCache && global.searchCache[userId];
+        
+        if (cache && !isNaN(text) && text >= 1 && text <= 5) {
+            const index = parseInt(text) - 1;
+            const video = cache.videos[index];
             
-            const selected = cache.results[index];
-            const videoId = selected.id;
-            const title = selected.title;
-            
+            if (!video) {
+                return reply("❌ Invalid selection");
+            }
+
+            const videoId = video.id.videoId;
+            const title = video.snippet.title;
+            const channel = video.snippet.channelTitle;
+            const thumbnail = video.snippet.thumbnails.high.url;
+
             // Show downloading message
-            await reply(`⬇️ *Downloading:* ${title}\n⏳ Please wait...`);
-            
+            await reply(`⬇️ *Downloading:* ${title}\n👤 ${channel}\n\n⏳ Converting to audio... Please wait.`);
+
             try {
-                // Method 1: Try direct ytdl-core
+                // Try ytdl-core first
                 const ytdl = require('ytdl-core');
-                const info = await ytdl.getInfo(videoId);
+                const info = await ytdl.getInfo(`https://youtube.com/watch?v=${videoId}`);
                 
-                // Get audio stream
-                const audioStream = ytdl(videoId, {
+                // Get audio format
+                const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+                
+                if (!audioFormat) {
+                    throw new Error("No audio format found");
+                }
+
+                // Download and send
+                const audioStream = ytdl(`https://youtube.com/watch?v=${videoId}`, {
                     quality: 'highestaudio',
                     filter: 'audioonly'
                 });
-                
-                // Collect stream into buffer
+
+                // Create buffer
                 const chunks = [];
                 for await (const chunk of audioStream) {
                     chunks.push(chunk);
                 }
                 const buffer = Buffer.concat(chunks);
-                
-                // Send success message
-                await reply(`✅ *Download Complete*\n🎵 ${title}\n📁 Sending MP3 file...`);
-                
+
+                // Prepare message
+                const message = `
+✅ *DOWNLOAD COMPLETE*
+
+🎵 *Title:* ${title}
+👤 *Channel:* ${channel}
+📊 *Quality:* ${audioFormat.audioBitrate}kbps
+⏱️ *Duration:* ${info.videoDetails.lengthSeconds} seconds
+
+📥 *Sending audio file...*
+`;
+
+                await reply(message);
+
                 // Send audio file
                 await conn.sendMessage(from, {
                     audio: buffer,
                     mimetype: 'audio/mpeg',
-                    fileName: `${title.substring(0, 100).replace(/[^\w\s]/gi, '')}.mp3`,
+                    fileName: `${title.replace(/[^\w\s]/gi, '')}.mp3`,
                     ptt: false
                 }, { quoted: m });
-                
-                // Clear cache for this user
-                delete global.musicCache[userId];
-                
-            } catch (downloadError) {
-                console.error("Download error:", downloadError);
-                
-                // Fallback: Send YouTube link
-                await reply(`
-❌ *Direct download failed*
-🎵 *Title:* ${title}
-🔗 *YouTube Link:* https://youtu.be/${videoId}
 
-*Alternative:*
-1. Use the link above
-2. Try different song
-3. Contact @${config.OWNER_NUMBER}
+                // Clean cache
+                delete global.searchCache[userId];
+
+            } catch (ytdlError) {
+                console.log("YTDL failed, trying alternative:", ytdlError);
+                
+                // Alternative: Use y2mate API
+                const apiUrl = `https://api.y2mate.guru/api/convert?url=https://youtube.com/watch?v=${videoId}`;
+                const apiResponse = await axios.get(apiUrl);
+                
+                if (apiResponse.data && apiResponse.data.url) {
+                    const audioUrl = apiResponse.data.url;
+                    
+                    // Download audio
+                    const audioResponse = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+                    const audioBuffer = Buffer.from(audioResponse.data, 'binary');
+                    
+                    const message = `
+✅ *DOWNLOAD COMPLETE*
+
+🎵 *Title:* ${title}
+👤 *Channel:* ${channel}
+📥 *Via:* y2mate API
+
+*Sending audio file...*
+`;
+                    
+                    await reply(message);
+                    
+                    await conn.sendMessage(from, {
+                        audio: audioBuffer,
+                        mimetype: 'audio/mpeg',
+                        fileName: `${title.substring(0, 50)}.mp3`,
+                        ptt: false
+                    }, { quoted: m });
+                    
+                    delete global.searchCache[userId];
+                } else {
+                    throw new Error("All download methods failed");
+                }
+            }
+
+        } else if (text) {
+            // If text is provided but not a number 1-5, treat as new search
+            return; // Let the first handler catch it
+        }
+
+    } catch (e) {
+        console.error("Download error:", e);
+        
+        // Try alternative method
+        try {
+            const userId = sender;
+            const cache = global.searchCache && global.searchCache[userId];
+            
+            if (cache && text && !isNaN(text) && text >= 1 && text <= 5) {
+                const index = parseInt(text) - 1;
+                const video = cache.videos[index];
+                const videoId = video.id.videoId;
+                const title = video.snippet.title;
+                
+                // Last resort: Send YouTube link
+                await reply(`
+🎵 *Alternative Download*
+
+*Title:* ${title}
+*YouTube Link:* https://youtu.be/${videoId}
+
+*You can:*
+1. Open link and use other downloader
+2. Try again later
+3. Search different song
+
+*Error:* ${e.message || "Download failed"}
 `);
                 
-                delete global.musicCache[userId];
+                delete global.searchCache[userId];
             }
-            
-            return;
+        } catch (finalError) {
+            await reply("❌ Download failed. Please try different song or try again later.");
         }
-        
-        // SEARCH MODE - User provided song name
-        await reply(`🔍 *Searching:* "${text}"\n⏳ Please wait...`);
-        
-        try {
-            // Using YouTube search
-            const searchQuery = encodeURIComponent(text + " official music");
-            const searchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
-            
-            // For simplicity, we'll use mock results since real YouTube search requires parsing
-            // In real implementation, you would use youtube-sr or similar package
-            
-            // Mock results (in real bot, you would parse actual search results)
-            const mockResults = [
-                { id: "dQw4w9WgXcQ", title: `${text} - Official Music Video`, duration: "3:45" },
-                { id: "9bZkp7q19f0", title: `${text} - Full Song`, duration: "4:20" },
-                { id: "k85mRPqvMbE", title: `${text} - Audio Only`, duration: "3:30" },
-                { id: "CduA0TULnow", title: `${text} - Lyrics Video`, duration: "4:05" },
-                { id: "JGwWNGJdvx8", title: `${text} - Best Quality`, duration: "3:55" }
-            ];
-            
-            // Store results in cache
-            global.musicCache[userId] = {
-                results: mockResults,
-                timestamp: Date.now(),
-                query: text
-            };
-            
-            // Auto-clean cache after 5 minutes
-            setTimeout(() => {
-                if (global.musicCache[userId]) {
-                    delete global.musicCache[userId];
-                }
-            }, 300000);
-            
-            // Show search results
-            let resultsList = `🎵 *Search Results for:* "${text}"\n\n`;
-            mockResults.forEach((result, index) => {
-                resultsList += `${index + 1}. ${result.title}\n   ⏱️ ${result.duration}\n\n`;
-            });
-            
-            resultsList += `*Reply with:* .music [number]\nExample: .music 1`;
-            
-            await reply(resultsList);
-            
-        } catch (searchError) {
-            console.error("Search error:", searchError);
-            
-            // Simple fallback search
-            const fallbackResults = `🎵 *Search Results:*\n\n`;
-            const fallbackList = `1. ${text} - Official Audio\n2. ${text} - Music Video\n3. ${text} - High Quality\n4. ${text} - Studio Version\n5. ${text} - Lyrics\n\n`;
-            const instructions = `*Note:* Bot search is currently limited.\nTry: .music 1 to download first result.`;
-            
-            // Store mock cache
-            global.musicCache[userId] = {
-                results: [
-                    { id: "dQw4w9WgXcQ", title: `${text} - Audio` },
-                    { id: "9bZkp7q19f0", title: `${text} - Video` },
-                    { id: "k85mRPqvMbE", title: `${text} - HQ` },
-                    { id: "CduA0TULnow", title: `${text} - Lyrics` },
-                    { id: "JGwWNGJdvx8", title: `${text} - Official` }
-                ],
-                timestamp: Date.now(),
-                query: text
-            };
-            
-            await reply(fallbackResults + fallbackList + instructions);
-        }
-        
-    } catch (e) {
-        console.error("Music command error:", e);
-        await reply("❌ Music service unavailable.\nPlease try again later or contact owner.");
     }
 });
