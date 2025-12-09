@@ -14,7 +14,7 @@ async (conn, mek, m, { from, reply }) => {
 
 *👑 Creator:* Abdulrahim
 *📱 Phone:* +255763111390
-*📷 Instagram:* @nyoni.xmd
+*📷 Instagram:* https://www.instagram.com/nyoni.xmd?igsh=MTR3eWN5NnB3OTV0eg==
 
 *⚽ Football Team:* SIMBA SC 🦁
 *💻 Technology Field:* Creator & Design
