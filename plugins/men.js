@@ -3,8 +3,8 @@ const { getTime, getDate, getUptime, color } = require('../libs/functions');
 const fs = require('fs');
 
 module.exports = {
-    name: 'menu',
-    alias: ['help', 'cmd', 'commands', 'allmenu', 'list', 'm', 'start'],
+    name: 'menu4',
+    alias: ['help2', 'cmd2', 'commands2', 'allmenu2', 'list2', 'm2', 'start2'],
     desc: 'Show all available commands with categories',
     category: 'Utility',
     
