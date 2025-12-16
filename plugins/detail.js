@@ -1,6 +1,5 @@
  const config = require('../config');
 const { cmd } = require('../command');
-const axios = require('axios'); // Kuhitajika kwa baadhi ya APIs
 
 cmd({
     pattern: "detail",
@@ -8,85 +7,87 @@ cmd({
     category: "tools",
     react: "📊",
     filename: __filename
-}, async (conn, mek, m, { from, sender, reply, isGroup, isBotGroupAdmin }) => {
+}, async (conn, mek, m, { from, sender, reply, isGroup }) => {
     try {
-        // 1. ANGALIA: Je, kuna reply?
+        // 1. CHECK: Is there a reply?
         if (!reply) {
             return await conn.sendMessage(from, { 
-                text: `📝 *Reply kwa message ya mtu unayetaka taarifa!*\n\nMfano: .detail (ukireply kwa message)` 
+                text: `📝 *Reply to a message to get user details!*\n\nExample: .detail (when replying to a message)` 
             }, { quoted: mek });
         }
 
-        // 2. PATA: Taarifa za msimbo wa ujumbe ulioreply
+        // 2. GET: Message info from reply
         const quotedMsg = mek.message.extendedTextMessage;
         const targetUserJid = quotedMsg.contextInfo.participant || quotedMsg.contextInfo.remoteJid;
         
         if (!targetUserJid) {
             return await conn.sendMessage(from, { 
-                text: "❌ *Haiwezekani kupata taarifa za mtumiaji!*\n\nHakikisha umereply kwa message halisi." 
+                text: "❌ *Unable to get user information!*\n\nMake sure you replied to a valid message." 
             }, { quoted: mek });
         }
 
-        // 3. TOA: Taarifa za msingi kutoka JID
+        // 3. GET: User information
         const userNumber = targetUserJid.split('@')[0];
-        const userInfo = await conn.fetchStatus(targetUserJid).catch(() => null);
+        const userInfo = await conn.fetchStatus(targetUserJid).catch(() => ({name: 'Not Available', status: 'No Status'}));
         const profilePic = await conn.profilePictureUrl(targetUserJid, 'image').catch(() => null);
         
-        // 4. ONYESHA: Taarifa kwa muundo mzuri
+        // 4. FORMAT: User details display
         const detailMessage = `
 ╭───「 📋 USER DETAILS 」───╮
 │
-│ 👤 *NAME:* ${userInfo?.name || 'Hakuna Jina'}
-│ 📞 *NUMBER:* +${userNumber}
-│ 📝 *ABOUT:* ${userInfo?.status || 'Hakuna Maelezo'}
-│ 📅 *UPDATED:* ${userInfo?.time ? new Date(userInfo.time).toLocaleString() : 'Hakijulikani'}
+│ 👤 *NAME:* ${userInfo.name || 'Not Available'}
+│ 📞 *PHONE:* WhatsApp Privacy Restricted
+│ 🔑 *USER ID:* ${targetUserJid}
+│ 📝 *ABOUT:* ${userInfo.status || 'No Status'}
+│ 📅 *LAST SEEN:* ${userInfo.time ? new Date(userInfo.time).toLocaleString() : 'Unknown'}
+│ 🌐 *TYPE:* ${isGroup ? 'Group Member' : 'Direct Contact'}
 │
 ╰─────────────────────────╯
 
-${profilePic ? `📸 *Picha ya Profaili:* ${profilePic}` : '⚠️ *Hakuna picha ya profaili*'}
+💡 *Note:* WhatsApp restricts phone number access for privacy reasons.
+📸 *Profile Picture:* ${profilePic ? 'Available below' : 'Not available or private'}
         `.trim();
 
-        // 5. TUMEA: Taarifa zote pamoja
-        const messagePayload = {
-            text: detailMessage,
-            contextInfo: {
-                mentionedJid: [targetUserJid],
-                forwardingScore: 999,
-                isForwarded: true
-            }
-        };
-
-        // Ongeza picha ikiwa ipo
+        // 5. SEND: Message with or without picture
         if (profilePic) {
-            try {
-                const imageResponse = await axios.get(profilePic, { responseType: 'arraybuffer' });
-                messagePayload.image = imageResponse.data;
-                messagePayload.caption = detailMessage;
-                delete messagePayload.text;
-            } catch (imgError) {
-                console.log("⚠️ Picha haikupatikana, tuma text pekee");
-            }
+            await conn.sendMessage(
+                from,
+                {
+                    image: { url: profilePic },
+                    caption: detailMessage,
+                    contextInfo: {
+                        mentionedJid: [targetUserJid],
+                        forwardingScore: 999,
+                        isForwarded: true
+                    }
+                },
+                { quoted: mek }
+            );
+        } else {
+            await conn.sendMessage(
+                from,
+                {
+                    text: detailMessage,
+                    contextInfo: {
+                        mentionedJid: [targetUserJid],
+                        forwardingScore: 999,
+                        isForwarded: true
+                    }
+                },
+                { quoted: mek }
+            );
         }
 
-        await conn.sendMessage(from, messagePayload, { quoted: mek });
-
-        // 6. BONUS: Onyesha reaction ya uthibitisho
+        // 6. ADD: Success reaction
         await conn.sendMessage(from, {
             react: { text: "✅", key: mek.key }
         });
 
     } catch (error) {
-        console.error("📊 DETAIL CMD ERROR:", error);
-        
-        let errorMessage = "❌ *Hitilafu katika kupata taarifa!*";
-        if (error.message.includes("not authorized")) {
-            errorMessage += "\n\n🔒 *Sababu:* Sina ruhusa za kusoma taarifa za mtumiaji huyu.";
-        } else if (error.message.includes("404")) {
-            errorMessage += "\n\n👤 *Sababu:* Mtumiaji huyu anaweza kuwa amefuta akaunti yake.";
-        }
+        console.error("DETAIL COMMAND ERROR:", error);
         
         await conn.sendMessage(from, { 
-            text: `${errorMessage}\n\n🔧 Error: ${error.message}` 
+            text: `❌ *Error getting details!*\n\nReason: ${error.message || 'Unknown error'}\n\nTry again or contact support if issue persists.` 
         }, { quoted: mek });
     }
 });
