@@ -1,75 +1,86 @@
- const config = require('../config');
+const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
     pattern: "pin",
-    desc: "Pin a message by replying to it",
+    desc: "Pin message (kwa admins tu) - Toleo la uwakika",
     category: "group",
     react: "📌",
     filename: __filename
-}, async (conn, mek, m, { from, isGroup, isBotGroupAdmin, isAdmin, reply }) => {
+}, async (conn, mek, m, { from, isGroup, reply, sender, isAdmin }) => {
     try {
-        // Check if in group
+        // 1. ANGALIA: Je, ni kikundi?
         if (!isGroup) {
             return await conn.sendMessage(from, { 
                 text: "⚠️ *Hii command inatumika kwenye group tu!*" 
             }, { quoted: mek });
         }
 
-        // Check if bot is admin
-        if (!isBotGroupAdmin) {
-            return await conn.sendMessage(from, { 
-                text: "❌ *Nipe admin rights kwanza ndio nisaidi kusimamisha message!*" 
-            }, { quoted: mek });
-        }
-
-        // Check if user is admin or sender
-        if (!isAdmin && m.sender !== config.OWNER_NUMBER) {
-            return await conn.sendMessage(from, { 
-                text: "🔒 *Hii command ni ya admins tu!*" 
-            }, { quoted: mek });
-        }
-
-        // Check if replying to a message
+        // 2. ANGALIA: Je, kuna reply?
         if (!reply) {
             return await conn.sendMessage(from, { 
                 text: "📝 *Reply kwa message unayotaka kupin!*\n\nMfano: .pin (ukireply kwa message)" 
             }, { quoted: mek });
         }
 
-        // Get the message to pin
-        const messageToPin = mek.message.extendedTextMessage.contextInfo.stanzaId || mek.message.extendedTextMessage.contextInfo.quotedMessage;
+        // 3. ANGALIA ADMIN: Njia ya Uwakika (Direct Metadata)
+        const groupMetadata = await conn.groupMetadata(from);
         
-        if (!messageToPin) {
+        // Tafuta taarifa za mtumiaji aliyetuma
+        const userParticipant = groupMetadata.participants.find(p => p.id === sender);
+        const userIsAdmin = userParticipant?.admin === 'admin' || userParticipant?.admin === 'superadmin';
+        
+        // Tafuta taarifa za BOT
+        const botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net';
+        const botParticipant = groupMetadata.participants.find(p => p.id === botJid);
+        const botIsAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+
+        // 4. HAKIKISHA: Mtumiaji ni Admin
+        if (!userIsAdmin && sender !== config.OWNER_NUMBER) {
             return await conn.sendMessage(from, { 
-                text: "❌ *Haiwezekani kupata message ya kupin!*" 
+                text: `🔒 *Ruhusa zimekataliwa!*\n\nUna budi kuwa *Admin* wa kikundi ili kupin message.` 
             }, { quoted: mek });
         }
 
-        // Pin the message
-        await conn.groupPinMessage(from, reply, true)
-            .then(async () => {
-                // Success message
-                await conn.sendMessage(from, { 
-                    text: "✅ *Message imepinishwa kikamilifu!*\n\n📌 *Imehifadhiwa kama pinned message*" 
-                }, { quoted: mek });
-                
-                // Optional: Send reaction to show success
-                await conn.sendMessage(from, {
-                    react: { text: "📌", key: mek.key }
-                });
-            })
-            .catch(async (error) => {
-                console.error("Pin error:", error);
-                await conn.sendMessage(from, { 
-                    text: `❌ *Imeshindikana kupin message!*\n\nHitilafu: ${error.message || "Unknown error"}` 
-                }, { quoted: mek });
+        // 5. HAKIKISHA: Bot ni Admin
+        if (!botIsAdmin) {
+            return await conn.sendMessage(from, { 
+                text: `🤖 *Bot yangu sio Admin!*\n\nTafadhali nipe *Admin rights* kwanza kupitia:\n1. Open Group Info\n2. Tap Bot Name\n3. Select "Make Group Admin"` 
+            }, { quoted: mek });
+        }
+
+        // 6. TENGEZA: Jaribu kupin moja kwa moja
+        try {
+            await conn.groupPinMessage(from, reply, true);
+            
+            // Onyesha ufanisi
+            await conn.sendMessage(from, {
+                react: { text: "✅", key: mek.key }
             });
+            
+            await conn.sendMessage(from, { 
+                text: `✅ *Message Imepinishwa!*\n\n📌 Sasa imehifadhiwa kama *pinned message* ya kwanza kwenye kikundi.` 
+            }, { quoted: mek });
+            
+        } catch (pinError) {
+            // Ishia makosa maalum
+            let errorMsg = "❌ *Imeshindikana kupin message!*";
+            if (pinError.message.includes("not authorized")) {
+                errorMsg += "\n\n⚙️ *Sababu:* Bot anaonekana Admin, lakini hakuna ruhusa kamili.";
+            } else if (pinError.message.includes("404")) {
+                errorMsg += "\n\n⚙️ *Sababu:* Message haipo au imefutwa tayari.";
+            }
+            errorMsg += `\n\n🔧 *Details:* ${pinError.message}`;
+            
+            await conn.sendMessage(from, { 
+                text: errorMsg 
+            }, { quoted: mek });
+        }
 
     } catch (error) {
-        console.error("Pin command error:", error);
+        console.error("📌 PIN CMD ERROR:", error);
         await conn.sendMessage(from, { 
-            text: `❌ *Hitilafu ya mfumo!*\n${error.message}` 
+            text: `⚙️ *Hitilafu ya Mfumo!*\n\nTafadhali jaribu tena baadae au tumia command nyingine.\n\n🔍 Error: ${error.message}` 
         }, { quoted: mek });
     }
 });
