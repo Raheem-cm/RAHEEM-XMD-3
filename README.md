@@ -32,12 +32,10 @@ DEPLOY SIMPLY RAHEEM-XMD-3
 
 
 
-[![RAHEEM-DEPLOY-SITE](https://img.shields.io/badge/RAHEEM%20-XMD%20SESSION-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://raheemsite.vercel.app/">)
----
+[![RAHEEM-DEPLOY-SITE]
 
-width="260" height="50"/>
   </a>
-     <a href="https://host.talkdrove.com/share-bot/82">
-    <img src="https://img.shields.io/badge/🇹🇿_DEPLOY_ON_TALKDROVE-000000?style=for-the-badge&logo=subaru&logoColor=gold&color=black" width="260" height="50"/>
+     <a href="https://raheemsite.vercel.app/">
+    <img src="https://img.shields.io/badge/🇹🇿_RAHEEM-XMD-3_DEPLOY_SITE--000000?style=for-the-badge&logo=subaru&logoColor=gold&color=black" width="260"heightt="50"/>
   </a>
-  <a 
+   
