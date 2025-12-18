@@ -32,8 +32,6 @@ DEPLOY SIMPLY RAHEEM-XMD-3
 
 
 
-[![RAHEEM-DEPLOY-SITE]
-
   </a>
      <a href="https://raheemsite.vercel.app/">
     <img src="https://img.shields.io/badge/🇹🇿_RAHEEM-XMD-3_DEPLOY_SITE--000000?style=for-the-badge&logo=subaru&logoColor=gold&color=black" width="260"heightt="50"/>
