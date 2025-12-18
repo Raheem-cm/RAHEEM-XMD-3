@@ -22,7 +22,7 @@
 ---
 
 <p align="center">
-  <img src="https://profile-counter.glitch.me/RAHEEM-XMD-3/count.svg" alt="fork here" />
+  <img src="https://profile-counter.glitch.me/RAHEEM-XMD-3/count.svg" alt="" />
 </p>
 
 ---
