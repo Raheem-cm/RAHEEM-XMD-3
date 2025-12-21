@@ -1,404 +1,295 @@
- const config = require('../config');
+const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
     pattern: "menu",
-    desc: "Show full paginated menu",
+    desc: "Show all commands menu",
     category: "menu",
     react: "📜",
     filename: __filename
 }, async (conn, mek, m, { from, text }) => {
     try {
-
-        const page = text?.trim() || "1";
-        let menu = "";
-
+        
         const header = `
-╔════════════════════╗
-║ 🤖 ${config.BOT_NAME || 'RAHEEM-XMD-3'}
-╚════════════════════╝
-┃❍┃• ᴏᴡɴᴇʀ : ${config.OWNER_NAME}
-┃❍┃• ᴍᴏᴅᴇ  : ${config.MODE}
-┃❍┃• ᴠᴇʀsɪᴏɴ : 1.0.0
-┃❍┃• ᴘʀᴇғɪx : ${config.PREFIX}
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
+╭────────────────────────────────
+│ 🤖 ${config.BOT_NAME || 'RAHEEM-XMD-3'}
+├────────────────────────────────
+│ 👤 Owner: ${config.OWNER_NAME}
+│ 📍 Prefix: ${config.PREFIX}
+│ 🎛️ Mode: ${config.MODE}
+│ ⚡ Version: 1.0.0
+╰───────────────────────────────
+
 `;
 
-        /* PAGE 1 ─ MAIN */
-        if (page === "1") {
-            menu = `
-${header}
-╔══════════════╗
-║ 🏠 ᴍᴀɪɴ ᴍᴇɴᴜ
-╚══════════════╝
-┃❍┃• ping
-┃❍┃• ping2
-┃❍┃• speed
-┃❍┃• live
-┃❍┃• alive
-┃❍┃• runtime
-┃❍┃• uptime
-┃❍┃• repo
-┃❍┃• owner
-┃❍┃• menu
-┃❍┃• menu2
-┃❍┃• restart
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 1/10 ➡️ *.menu 2*
-`;
-        }
+        const menu = `${header}
+╭───〔 🏠 MAIN 〕─────────
+│ .ping
+│ .speed
+│ .alive
+│ .uptime
+│ .owner
+│ .repo
+│ .menu
+│ .restart
+│ .today
+│ .id
+│ .advice
+│ .cs
+│ .inde
+│ .bffs
+│ .cf
+├──────────────────
 
-        /* PAGE 2 ─ DOWNLOAD */
-        else if (page === "2") {
-            menu = `
-${header}
-╔══════════════╗
-║ 📥 ᴅᴏᴡɴʟᴏᴀᴅ
-╚══════════════╝
-┃❍┃• facebook
-┃❍┃• mediafire
-┃❍┃• tiktok
-┃❍┃• twitter
-┃❍┃• insta
-┃❍┃• apk
-┃❍┃• img
-┃❍┃• tt2
-┃❍┃• pins
-┃❍┃• apk2
-┃❍┃• fb2
-┃❍┃• pinterest
-┃❍┃• spotify
-┃❍┃• play
-┃❍┃• play2
-┃❍┃• audio
-┃❍┃• video
-┃❍┃• video2
-┃❍┃• ytmp3
-┃❍┃• ytmp4
-┃❍┃• song
-┃❍┃• darama
-┃❍┃• gdrive
-┃❍┃• ssweb
-┃❍┃• tiks
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 2/10 ⬅️ *.menu* ➡️ *.menu 3*
-`;
-        }
+╭───〔 📥 DOWNLOAD 〕──
+│ .facebook
+│ .tiktok
+│ .instagram
+│ .twitter
+│ .mediafire
+│ .apk
+│ .img
+│ .tt2
+│ .pins
+│ .apk2
+│ .fb2
+│ .pinterest
+│ .spotify
+│ .play
+│ .play2
+│ .audio
+│ .video
+│ .video2
+│ .ytmp3
+│ .ytmp4
+│ .song
+│ .darama
+│ .gdrive
+│ .ssweb
+│ .tiks
+├──────────────────
 
-        /* PAGE 3 ─ GROUP */
-        else if (page === "3") {
-            menu = `
-${header}
-╔══════════════╗
-║ 👥 ɢʀᴏᴜᴘ
-╚══════════════╝
-┃❍┃• grouplink
-┃❍┃• kickall
-┃❍┃• kickall2
-┃❍┃• kickall3
-┃❍┃• add
-┃❍┃• remove
-┃❍┃• kick
-┃❍┃• promote
-┃❍┃• demote
-┃❍┃• dismiss
-┃❍┃• revoke
-┃❍┃• setgoodbye
-┃❍┃• setwelcome
-┃❍┃• delete
-┃❍┃• getpic
-┃❍┃• ginfo
-┃❍┃• disappear on
-┃❍┃• disappear off
-┃❍┃• disappear 7D,24H
-┃❍┃• allreq
-┃❍┃• updategname
-┃❍┃• updategdesc
-┃❍┃• joinrequests
-┃❍┃• senddm
-┃❍┃• nikal
-┃❍┃• mute
-┃❍┃• unmute
-┃❍┃• lockgc
-┃❍┃• unlockgc
-┃❍┃• invite
-┃❍┃• tag
-┃❍┃• hidetag
-┃❍┃• tagall
-┃❍┃• tagadmins
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 3/10 ⬅️ *.menu 2* ➡️ *.menu 4*
-`;
-        }
+╭───〔 👥 GROUP 〕────
+│ .grouplink
+│ .kickall
+│ .kickall2
+│ .kickall3
+│ .add
+│ .remove
+│ .kick
+│ .promote
+│ .demote
+│ .dismiss
+│ .revoke
+│ .setgoodbye
+│ .setwelcome
+│ .delete
+│ .getpic
+│ .ginfo
+│ .disappear
+│ .allreq
+│ .updategname
+│ .updategdesc
+│ .joinrequests
+│ .senddm
+│ .nikal
+│ .mute
+│ .unmute
+│ .lockgc
+│ .unlockgc
+│ .invite
+│ .tag
+│ .hidetag
+│ .tagall
+│ .tagadmins
+├──────────────────
 
-        /* PAGE 4 ─ FUN */
-        else if (page === "4") {
-            menu = `
-${header}
-╔══════════════╗
-║ 🎉 ғᴜɴ
-╚══════════════╝
-┃❍┃• shapar
-┃❍┃• rate
-┃❍┃• insult
-┃❍┃• hack
-┃❍┃• ship
-┃❍┃• character
-┃❍┃• pickup
-┃❍┃• joke
-┃❍┃• hrt
-┃❍┃• hpy
-┃❍┃• syd
-┃❍┃• anger
-┃❍┃• shy
-┃❍┃• kiss
-┃❍┃• mon
-┃❍┃• cunfuzed
-┃❍┃• setpp
-┃❍┃• hand
-┃❍┃• nikal
-┃❍┃• hold
-┃❍┃• hug
-┃❍┃• hifi
-┃❍┃• poke
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 4/10 ⬅️ *.menu 3* ➡️ *.menu 5*
-`;
-        }
+╭───〔 🎉 FUN 〕─────
+│ .shapar
+│ .rate
+│ .insult
+│ .hack
+│ .ship
+│ .character
+│ .pickup
+│ .joke
+│ .hrt
+│ .hpy
+│ .syd
+│ .anger
+│ .shy
+│ .kiss
+│ .mon
+│ .cunfuzed
+│ .setpp
+│ .hand
+│ .nikal
+│ .hold
+│ .hug
+│ .hifi
+│ .poke
+├──────────────────
 
-        /* PAGE 5 ─ OWNER */
-        else if (page === "5") {
-            menu = `
-${header}
-╔══════════════╗
-║ 👑 ᴏᴡɴᴇʀ
-╚══════════════╝
-┃❍┃• owner
-┃❍┃• menu
-┃❍┃• menu2
-┃❍┃• vv
-┃❍┃• listcmd
-┃❍┃• allmenu
-┃❍┃• repo
-┃❍┃• block
-┃❍┃• unblock
-┃❍┃• fullpp
-┃❍┃• setpp
-┃❍┃• restart
-┃❍┃• shutdown
-┃❍┃• updatecmd
-┃❍┃• alive
-┃❍┃• ping
-┃❍┃• gjid
-┃❍┃• jid
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 5/10 ⬅️ *.menu 4* ➡️ *.menu 6*
-`;
-        }
+╭───〔 👑 OWNER 〕────
+│ .owner
+│ .menu
+│ .menu2
+│ .vv
+│ .listcmd
+│ .allmenu
+│ .repo
+│ .block
+│ .unblock
+│ .fullpp
+│ .setpp
+│ .restart
+│ .shutdown
+│ .updatecmd
+│ .alive
+│ .ping
+│ .gjid
+│ .jid
+├──────────────────
 
-        /* PAGE 6 ─ AI */
-        else if (page === "6") {
-            menu = `
-${header}
-╔══════════════╗
-║ 🤖 ᴀɪ
-╚══════════════╝
-┃❍┃• ai
-┃❍┃• gpt3
-┃❍┃• gpt2
-┃❍┃• gptmini
-┃❍┃• gpt
-┃❍┃• meta
-┃❍┃• blackbox
-┃❍┃• luma
-┃❍┃• dj
-┃❍┃• khan
-┃❍┃• jawad
-┃❍┃• gpt4
-┃❍┃• bing
-┃❍┃• imagine
-┃❍┃• imagine2
-┃❍┃• copilot
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 6/10 ⬅️ *.menu 5* ➡️ *.menu 7*
-`;
-        }
+╭───〔 🤖 AI 〕──────
+│ .ai
+│ .gpt3
+│ .gpt2
+│ .gptmini
+│ .gpt
+│ .meta
+│ .blackbox
+│ .luma
+│ .dj
+│ .khan
+│ .jawad
+│ .gpt4
+│ .bing
+│ .imagine
+│ .imagine2
+│ .copilot
+├──────────────────
 
-        /* PAGE 7 ─ ANIME */
-        else if (page === "7") {
-            menu = `
-${header}
-╔══════════════╗
-║ 🎌 ᴀɴɪᴍᴇ
-╚══════════════╝
-┃❍┃• fack
-┃❍┃• truth
-┃❍┃• dare
-┃❍┃• dog
-┃❍┃• awoo
-┃❍┃• garl
-┃❍┃• waifu
-┃❍┃• neko
-┃❍┃• megnumin
-┃❍┃• maid
-┃❍┃• loli
-┃❍┃• animegirl
-┃❍┃• animegirl1
-┃❍┃• animegirl2
-┃❍┃• animegirl3
-┃❍┃• animegirl4
-┃❍┃• animegirl5
-┃❍┃• anime1
-┃❍┃• anime2
-┃❍┃• anime3
-┃❍┃• anime4
-┃❍┃• anime5
-┃❍┃• animenews
-┃❍┃• foxgirl
-┃❍┃• naruto
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 7/10 ⬅️ *.menu 6* ➡️ *.menu 8*
-`;
-        }
+╭───〔 🎌 ANIME 〕────
+│ .fack
+│ .truth
+│ .dare
+│ .dog
+│ .awoo
+│ .garl
+│ .waifu
+│ .neko
+│ .megnumin
+│ .maid
+│ .loli
+│ .animegirl
+│ .animegirl1
+│ .animegirl2
+│ .animegirl3
+│ .animegirl4
+│ .animegirl5
+│ .anime1
+│ .anime2
+│ .anime3
+│ .anime4
+│ .anime5
+│ .animenews
+│ .foxgirl
+│ .naruto
+├──────────────────
 
-        /* PAGE 8 ─ CONVERT */
-        else if (page === "8") {
-            menu = `
-${header}
-╔══════════════╗
-║ 🔄 ᴄᴏɴᴠᴇʀᴛ
-╚══════════════╝
-┃❍┃• sticker
-┃❍┃• sticker2
-┃❍┃• emojimix
-┃❍┃• fancy
-┃❍┃• take
-┃❍┃• tomp3
-┃❍┃• tts
-┃❍┃• trt
-┃❍┃• base64
-┃❍┃• unbase64
-┃❍┃• binary
-┃❍┃• dbinary
-┃❍┃• tinyurl
-┃❍┃• urldecode
-┃❍┃• urlencode
-┃❍┃• url
-┃❍┃• repeat
-┃❍┃• ask
-┃❍┃• readmore
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 8/10 ⬅️ *.menu 7* ➡️ *.menu 9*
-`;
-        }
+╭───〔 🔄 CONVERT 〕───
+│ .sticker
+│ .sticker2
+│ .emojimix
+│ .fancy
+│ .take
+│ .tomp3
+│ .tts
+│ .trt
+│ .base64
+│ .unbase64
+│ .binary
+│ .dbinary
+│ .tinyurl
+│ .urldecode
+│ .urlencode
+│ .url
+│ .repeat
+│ .ask
+│ .readmore
+├──────────────────
 
-        /* PAGE 9 ─ OTHER */
-        else if (page === "9") {
-            menu = `
-${header}
-╔══════════════╗
-║ 📌 ᴏᴛʜᴇʀ
-╚══════════════╝
-┃❍┃• timenow
-┃❍┃• date
-┃❍┃• count
-┃❍┃• calculate
-┃❍┃• countx
-┃❍┃• flip
-┃❍┃• coinflip
-┃❍┃• rcolor
-┃❍┃• roll
-┃❍┃• fact
-┃❍┃• cpp
-┃❍┃• rw
-┃❍┃• pair
-┃❍┃• pair2
-┃❍┃• pair3
-┃❍┃• fancy
-┃❍┃• logo <text>
-┃❍┃• define
-┃❍┃• news
-┃❍┃• movie
-┃❍┃• weather
-┃❍┃• srepo
-┃❍┃• insult
-┃❍┃• save
-┃❍┃• wikipedia
-┃❍┃• gpass
-┃❍┃• githubstalk
-┃❍┃• yts
-┃❍┃• ytv
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 9/10 ⬅️ *.menu 8* ➡️ *.menu 10*
-`;
-        }
+╭───〔 📌 OTHER 〕────
+│ .timenow
+│ .date
+│ .count
+│ .calculate
+│ .countx
+│ .flip
+│ .coinflip
+│ .rcolor
+│ .roll
+│ .fact
+│ .cpp
+│ .rw
+│ .pair
+│ .pair2
+│ .pair3
+│ .fancy
+│ .logo
+│ .define
+│ .news
+│ .movie
+│ .weather
+│ .srepo
+│ .insult
+│ .save
+│ .wikipedia
+│ .gpass
+│ .githubstalk
+│ .yts
+│ .ytv
+├──────────────────
 
-        /* PAGE 10 ─ REACTIONS */
-        else if (page === "10") {
-            menu = `
-${header}
-╔══════════════╗
-║ 💞 ʀᴇᴀᴄᴛɪᴏɴs
-╚══════════════╝
-┃❍┃• bully
-┃❍┃• cuddle
-┃❍┃• cry
-┃❍┃• hug
-┃❍┃• awoo
-┃❍┃• kiss
-┃❍┃• lick
-┃❍┃• pat
-┃❍┃• smug
-┃❍┃• bonk
-┃❍┃• yeet
-┃❍┃• blush
-┃❍┃• smile
-┃❍┃• wave
-┃❍┃• highfive
-┃❍┃• handhold
-┃❍┃• nom
-┃❍┃• bite
-┃❍┃• glomp
-┃❍┃• slap
-┃❍┃• kill
-┃❍┃• happy
-┃❍┃• wink
-┃❍┃• poke
-┃❍┃• dance
-┃❍┃• cringe
-┃❍└───────────┈⊷
-╰─────────────────┈⊷
-📄 Page 10/10 ⬅️ *.menu 9*
-`;
-        }
+╭───〔 💞 REACTIONS 〕──
+│ .bully
+│ .cuddle
+│ .cry
+│ .hug
+│ .awoo
+│ .kiss
+│ .lick
+│ .pat
+│ .smug
+│ .bonk
+│ .yeet
+│ .blush
+│ .smile
+│ .wave
+│ .highfive
+│ .handhold
+│ .nom
+│ .bite
+│ .glomp
+│ .slap
+│ .kill
+│ .happy
+│ .wink
+│ .poke
+│ .dance
+│ .cringe
+╰────────────────────
 
-        else {
-            menu = "❌ Invalid page. Use `.menu` or `.menu 2-10`";
-        }
+📜 Total Commands: 150+
+✅ Use: ${config.PREFIX}<command>
+`;
 
         await conn.sendMessage(
             from,
             {
-                image: { url: config.MENU_IMAGE_URL || 'https://files.catbox.moe/fghi44.jpg' },
-                caption: menu.trim(),
+                text: menu.trim(),
                 contextInfo: {
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: "120363399470975987@newsletter",
-                        newsletterName: "RAHEEM-XMD",
-                        serverMessageId: 1
-                    },
                     mentionedJid: [m.sender]
                 }
             },
