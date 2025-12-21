@@ -12,7 +12,7 @@ cmd({
         const repoInfo = `
 ╭━━〔 *RAHEEM-XMD-3 REPO* 〕━━┈
 ┃
-┃ 📂 *Repository:* RAHEEM-XMD-3
+┃ 📂 *Repository:* https://github.com/Raheem-cm/RAHEEM-XMD-3
 ┃ 👤 *Owner:* Raheem-cm
 ┃ 🌟 *Stars:* Auto-fetching...
 ┃ 🍴 *Forks:* Auto-fetching...
