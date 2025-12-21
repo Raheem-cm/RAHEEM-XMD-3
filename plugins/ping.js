@@ -1,7 +1,7 @@
  const config = require('../config');
 const { cmd } = require('../command');
 
-const MUSIC_URL = "https://files.catbox.moe/o919rq.mp3";
+const MUSIC_URL = "https://files.catbox.moe/ah3kxe.mp3";
 const IMAGE_URL = "https://files.catbox.moe/9gl0l8.jpg";
 
 cmd({
