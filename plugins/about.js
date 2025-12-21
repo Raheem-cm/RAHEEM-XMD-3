@@ -2,7 +2,7 @@ const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
-    pattern: ".",
+    pattern: "nyoni",
     desc: "Show information about the developer",
     category: "main",
     react: "ℹ️",
