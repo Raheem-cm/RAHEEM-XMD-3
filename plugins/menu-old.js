@@ -11,14 +11,14 @@ cmd({
     try {
         
         const header = `
-┏━━━⬣  *${config.BOT_NAME || 'RAHEEM-XMD-3'}* ⬣━━┓
+┏━━━━━━━⬣  *${config.BOT_NAME || 'RAHEEM-XMD-3'}* ⬣━━━━━━━┓
 ┃
 ┃  👤 *User:* @${m.sender.split('@')[0]}
 ┃  📍 *Prefix:* ${config.PREFIX}
 ┃  🎛️ *Mode:* ${config.MODE}
 ┃  ⚡ *Status:* Active
 ┃
-┗━━━━━━━━━━━━━━━━━┛
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 `;
 
         const menu = `${header}
@@ -142,7 +142,7 @@ cmd({
 ┃ ▫️ .happy
 ┃ ▫️ .dance
 ┃
-┗━━━━━━━━━━━━━━━━━━━━┛
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 > *Created by Raheem-CM*
 `;
@@ -154,8 +154,13 @@ cmd({
                 caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
-                    forwardingScore: 1,
+                    forwardingScore: 999,
                     isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363399470975987@newsletter',
+                        newsletterName: "RAHEEM-XMD OFFICIAL",
+                        serverMessageId: 1
+                    },
                     externalAdReply: {
                         title: "RAHEEM-XMD V1.0.0",
                         body: "MULTI-DEVICE WHATSAPP BOT",
@@ -167,7 +172,7 @@ cmd({
                     }
                 }
             },
-            { quoted: mek } // Hii inahakikisha bot inajibu (reply) ujumbe uliotuma
+            { quoted: mek }
         );
 
     } catch (e) {
