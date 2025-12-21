@@ -42,7 +42,7 @@ async (conn, mek, m, { from, sender, reply }) => {
 ┃
 ┃ 🚀 *Response:* ${latency}ms
 ┃ 🕹️ *Mode:* ${config.MODE}
-┃ 📟 *Vers:* 1.0.0
+┃ 📟 *Vers:* 4.0.0
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━┈
 > *Speed is the heart of RAHEEM-XMD*`
