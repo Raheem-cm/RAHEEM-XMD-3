@@ -11,47 +11,47 @@ cmd({
     try {
         
         const ownerHeader = `
-╭━━〔 👑 *NYONI-XMD CONTROL* 👑 〕━━┈
+╭━━〔 👑 *RAHERM-XMD-3 MASTER* 👑 〕━━┈
 ┃
-┃ 🛡️ *System Admin:* Nyoni-CM
-┃ 🕹️ *Access:* Authorized Only
-┃ ⚡ *Status:* Root Access
-┃ 🛰️ *Server:* Secure-V3
+┃ 👤 *Admin:* NYONI-CM
+┃ 🕹️ *Access:* AUTHORIZED ONLY
+┃ ⚡ *Status:* ROOT ACCESS
+┃ 🛰️ *Server:* SECURE-V3
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━┈
 
-> *Warning: These commands can modify bot behavior.*
+> *Caution: Administrative commands ahead.*
 `;
 
         const ownerMenu = `${ownerHeader}
-*╭──┈〔 👑 MASTER CMDS 〕┈──*
-┃ ✧ .block [namba]
-┃ ✧ .unblock [namba]
-┃ ✧ .fullpp (Weka PP kubwa)
-┃ ✧ .setpp (Weka PP kawaida)
-┃ ✧ .restart (Washa upya bot)
-┃ ✧ .shutdown (Zima bot)
-┃ ✧ .updatecmd (Update kodi)
-┃ ✧ .broadcast (Tuma ujumbe wote)
+*╭──┈〔 🛡️ MASTER CONTROL 〕┈──*
+┃ ✧ .block [number]
+┃ ✧ .unblock [number]
+┃ ✧ .fullpp (Set HD Profile)
+┃ ✧ .setpp (Set Normal Profile)
+┃ ✧ .restart (Reboot System)
+┃ ✧ .shutdown (Kill Process)
+┃ ✧ .updatecmd (Fetch Updates)
+┃ ✧ .broadcast (Global Message)
 ╰──────────────┈
 
 *╭──┈〔 📊 DATA & LOGS 〕┈──*
 ┃ ✧ .listcmd
-┃ ✧ .gjid (Pata ID ya Group)
-┃ ✧ .jid (Pata ID ya User)
-┃ ✧ .alive (Check system)
-┃ ✧ .ping (Check Speed)
+┃ ✧ .gjid (Get Group ID)
+┃ ✧ .jid (Get User ID)
+┃ ✧ .alive (System Check)
+┃ ✧ .ping (Latency Check)
 ╰──────────────┈
 
-*╭──┈〔 🛠️ CONFIGS 〕┈──*
+*╭──┈〔 🛠️ CONFIGURATIONS 〕┈──*
 ┃ ✧ .setmode (Public/Private)
-┃ ✧ .setprefix (Badili prefix)
-┃ ✧ .allmenu (View everything)
-┃ ✧ .vv (View Once bypass)
+┃ ✧ .setprefix (Change Prefix)
+┃ ✧ .allmenu (Full Command List)
+┃ ✧ .vv (View Once Bypass)
 ╰──────────────┈
 
-> 👤 **Owner:** Nyoni-CM
-> ✅ **Access:** Verified Admin
+> 👤 **Lead Dev:** Nyoni-CM
+> ✅ **Access:** Verified Master
 `;
 
         await conn.sendMessage(
@@ -61,13 +61,18 @@ cmd({
                 caption: ownerMenu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
-                    forwardingScore: 1,
+                    forwardingScore: 999,
                     isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363399470975987@newsletter',
+                        newsletterName: "RAHEEM-XMD OFFICIAL",
+                        serverMessageId: 1
+                    },
                     externalAdReply: {
-                        title: "NYONI-XMD OWNER PANEL",
-                        body: "Authorized Personnel Only",
+                        title: "RAHERM-XMD OWNER PANEL",
+                        body: "AUTHORIZED ACCESS ONLY",
                         mediaType: 1,
-                        sourceUrl: "https://github.com/Nyoni-xmd",
+                        sourceUrl: "https://github.com/Rahee-cm",
                         thumbnailUrl: "https://files.catbox.moe/9gl0l8.jpg",
                         renderLargerThumbnail: false,
                         showAdAttribution: true
@@ -79,6 +84,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ Owner system error!" }, { quoted: mek });
+        await conn.sendMessage(from, { text: "❌ Master system encounterd an error." }, { quoted: mek });
     }
 });
