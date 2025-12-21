@@ -1,119 +1,58 @@
 const config = require('../config');
 const { cmd } = require('../command');
 
-// Database ya majibu
-const responses = {
-    "habari": "Nzuri! Vipi wewe?",
-    "mambo": "Poa! Vipi mkuu?",
-    "poa": "Safi sana!",
-    "asante": "Karibu sana!",
-    "nimefurahi": "Mimi pia nimefurahi!",
-    "unafanyanini": "Nakusaidia na maswali yako!",
-    "unaishi wapi": "Ninaishi kwenye server ya WhatsApp!",
-    "umri wako": "Sina umri, mimi ni programu tu!",
-    "una rafiki": "Ndio, wewe ni rafiki yangu!",
-    "nakupenda": "Asante! Mimi pia nakupenda!",
-    "good morning": "Good morning! Habari za asubuhi?",
-    "good night": "Good night! Lala salama!",
-    "una jina": `Jina langu ni ${config.BOT_NAME || 'ChatBot'}!`,
-    "nani wewe": `Mimi ni ${config.BOT_NAME || 'ChatBot'}, chatbot ya kukusaidia!`,
-    "una uwezo gani": "Ninaweza kukujibu maswali, kusaidia na mazungumzo!",
-    "owner wako": `Owner wangu ni ${config.OWNER_NAME || 'Unknown'}`
-};
-
+// 1. COMMAND YA KUWASHA/KUZIMA (Kwa Owner)
 cmd({
-    pattern: "smartbot",
-    alias: ["helper", "msaidizi"],
-    desc: "Turn ON/OFF smart helper bot",
-    category: "ai",
-    react: "💡",
+    pattern: "chatbot",
+    desc: "Turn on or off the auto-reply chatbot.",
+    category: "owner",
+    react: "🤖",
     filename: __filename
-}, async (conn, mek, m, { from, text, reply }) => {
-    const args = text?.split(' ') || [];
-    const action = args[0]?.toLowerCase();
-    
-    if (!action) {
-        return reply(`💡 *SMART HELPER BOT*\n\n` +
-                     `• .smartbot on - Washa helper\n` +
-                     `• .smartbot off - Zima helper\n` +
-                     `• .smartbot add [keyword]=[response] - Ongeza jibu\n\n` +
-                     `Status: ${config.HELPER_BOT ? '✅ ON' : '❌ OFF'}`);
+}, async (conn, mek, m, { from, q, isOwner, reply }) => {
+    if (!isOwner) return reply("❌ Amri hii ni kwa ajili ya Owner pekee.");
+
+    if (q === "on") {
+        config.CHATBOT_ON = "true";
+        await reply("🤖 *Chatbot imewashwa!* Sasa nitajibu meseji za watu kiotomatiki.");
+    } else if (q === "off") {
+        config.CHATBOT_ON = "false";
+        await reply("🤖 *Chatbot imezimwa!* Nitarudi kwenye hali ya kawaida.");
+    } else {
+        await reply(`*Status:* ${config.CHATBOT_ON === "true" ? "ON ✅" : "OFF ❌"}\n*Usage:* .chatbot on / off`);
     }
-    
-    if (action === 'on') {
-        config.HELPER_BOT = true;
-        return reply(`✅ *Smart Helper imewashwa!*`);
-    }
-    
-    if (action === 'off') {
-        config.HELPER_BOT = false;
-        return reply(`❌ *Smart Helper imezimwa!*`);
-    }
-    
-    if (action === 'add' && args[1]) {
-        const [key, ...valueParts] = args.slice(1).join(' ').split('=');
-        if (key && valueParts.length > 0) {
-            responses[key.toLowerCase()] = valueParts.join('=');
-            return reply(`✅ Jibu limeongezwa kwa keyword: *${key}*`);
-        }
-    }
-    
-    return reply(`❌ Sintaki command.`);
 });
 
-// Handler ya smart bot
-module.exports.handleSmartBot = async (conn, mek) => {
-    try {
-        if (!config.HELPER_BOT) return;
-        
-        const { body, from, sender } = mek;
-        const message = body?.toLowerCase()?.trim();
-        
-        if (!message || message.startsWith(config.PREFIX)) return;
-        if (sender === conn.user.id) return;
-        
-        // Tafuta keyword katika message
-        for (const [keyword, response] of Object.entries(responses)) {
-            if (message.includes(keyword)) {
-                await conn.sendMessage(from, { text: response }, { quoted: mek });
-                return;
-            }
-        }
-        
-        // Ikiwa hakuna keyword, tumia AI
-        if (message.length > 3) {
-            const aiResponse = getSmartResponse(message);
-            await conn.sendMessage(from, { text: aiResponse }, { quoted: mek });
-        }
-        
-    } catch (error) {
-        console.error("Smart bot error:", error);
-    }
-};
+// 2. LOGIC YA CHATBOT (Inasoma meseji zote)
+cmd({
+    on: "body"
+}, async (conn, mek, m, { from, body, isCmd, pushname, reply }) => {
+    // Masharti ya kuto-jibu
+    if (config.CHATBOT_ON !== "true") return; // Ikiwa chatbot imezimwa
+    if (isCmd) return; // Isijibu ikiwa ni command (mfano .menu)
+    if (m.key.fromMe) return; // Isijibu meseji zako mwenyewe
 
-function getSmartResponse(message) {
-    // Heuristics za kujibu
-    if (message.includes('?')) {
-        return "Hiyo ni swali zuri! Ninafikiri...";
+    const msg = body.toLowerCase();
+
+    // --- MAJIBU YA CHATBOT ---
+    if (msg.includes("mambo") || msg.includes("vipi") || msg.includes("habari")) {
+        return await reply(`Safi kabisa *${pushname}*! Mimi ni RAHEEM-XMD AI. Boss wangu hayupo kwa sasa, lakini unaweza kutumia *.menu* kuona ninachoweza kufanya.`);
     }
-    
-    if (message.includes('!')) {
-        return "Wow! Hiyo ni ya kusisimua!";
+
+    if (msg === "bot" || msg === "raheem") {
+        return await reply("Nipo hapa mkuu! Unahitaji msaada gani? Type *.menu* uone commands zangu.");
     }
-    
-    if (message.length < 10) {
-        const shortResponses = ["Mmmh", "Sawa", "Ok", "Nimeelewa", "Aha"];
-        return shortResponses[Math.floor(Math.random() * shortResponses.length)];
+
+    if (msg.includes("asante") || msg.includes("shukrani")) {
+        return await reply("Karibu sana! Tuko pamoja. 🫡");
     }
-    
-    // Generic responses
-    const generics = [
-        "Ninaelewa unachosema.",
-        "Hiyo ni ya kuvutia.",
-        "Naweza kusaidia vipi zaidi?",
-        "Asante kwa kuongea nami.",
-        "Nimependa mazungumzo haya."
-    ];
-    
-    return generics[Math.floor(Math.random() * generics.length)];
-}
+
+    if (msg.includes("owner") || msg.includes("admin")) {
+        return await reply("Boss wangu ni *RAHEEM CM*. Unaweza kumpata hapa: +255763111390");
+    }
+
+    // Ukireply namba kwenye menu (Mfano wa kuelekeza watu)
+    if (m.quoted && m.quoted.text.includes("MENU")) {
+        if (msg === '1') return reply("Umechagua namba 1: Hii ni Main Menu.");
+        if (msg === '2') return reply("Umechagua namba 2: Hii ni Downloader Menu.");
+    }
+});
