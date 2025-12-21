@@ -54,7 +54,7 @@ cmd({
 ┃ ✧ .fb2
 ┃ ✧ .pinterest
 ┃ ✧ .spotify
-┃ ✧ .play
+┃ ✧ .play4
 ┃ ✧ .play2
 ┃ ✧ .audio
 ┃ ✧ .video
@@ -294,7 +294,7 @@ cmd({
                     forwardingScore: 999,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: ' 12036339947097598@newsletter',
+                        newsletterJid: '120363399470975987@newsletter',
                         newsletterName: "RAHEEM-XMD",
                         serverMessageId: 1
                     }
