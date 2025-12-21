@@ -1,4 +1,4 @@
-const axios = require("axios");
+ const axios = require("axios");
 const { cmd } = require("../command");
 
 cmd({
@@ -14,19 +14,21 @@ cmd({
       return reply("❎ Please provide text to convert into fancy fonts.\n\n*Example:* .fancy Hello");
     }
 
-    const apiUrl = `https://www.dark-yasiya-api.site/other/font?text=${encodeURIComponent(q)}`;
+    // Using a working public API
+    const apiUrl = `https://api.fgmods.xyz/api/maker/fancy?text=${encodeURIComponent(q)}&apikey=free`;
     const response = await axios.get(apiUrl);
     
-    if (!response.data.status) {
-      return reply("❌ Error fetching fonts. Please try again later.");
+    if (!response.data || !response.data.result) {
+      return reply("❌ Unexpected response from the font service. Please try again.");
     }
 
-    const fonts = response.data.result.map(item => `*${item.name}:*\n${item.result}`).join("\n\n");
+    // Formatting the result from the new API
+    const fonts = response.data.result;
     const resultText = `✨ *Fancy Fonts Converter* ✨\n\n${fonts}\n\n> *Powered by Raheem-cm*`;
 
     await conn.sendMessage(from, { text: resultText }, { quoted: m });
   } catch (error) {
     console.error("❌ Error in fancy command:", error);
-    reply("⚠️ An error occurred while fetching fonts.");
+    reply("⚠️ An error occurred while fetching fonts. The service might be temporarily unavailable.");
   }
 });
