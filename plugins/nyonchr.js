@@ -1,151 +1,227 @@
- const { cmd } = require('../command');
+ const config = require('../config');
+const { cmd } = require('../command');
+const axios = require('axios');
 
-// Initialize chatbot state
-global.chatbotState = global.chatbotState || {
-    enabled: false,
-    groupChat: {}
-};
+// Kumbukumbu ya mazungumzo (conversation memory)
+const userChats = new Map();
 
 cmd({
     pattern: "chatbot",
-    desc: "Enable/disable AI chatbot | .chatbot on/off/status",
-    react: "🤖",
+    alias: ["bot", "ai"],
+    desc: "On/Off chatbot for groups or private",
     category: "ai",
+    react: "🤖",
     filename: __filename
-},
-async (conn, mek, m, { from, reply, text, sender, isGroup }) => {
+}, async (conn, mek, m, { from, text, isGroup, sender }) => {
     try {
-        if (!text) {
-            const helpMsg = `
-🤖 *CHATBOT CONTROL* 🤖
-
-*Usage:* .chatbot [option]
-*Options:*
-• on - Enable chatbot
-• off - Disable chatbot  
-• status - Check status
-
-*Examples:*
-• .chatbot on
-• .chatbot off
-• .chatbot status
-
-*Note:* Chatbot will respond to messages when enabled
-`;
-            return reply(helpMsg);
-        }
-
-        const action = text.trim().toLowerCase();
+        const args = text?.split(' ') || [];
+        const action = args[0]?.toLowerCase();
         
-        if (action === 'status') {
-            const status = global.chatbotState.enabled ? '✅ ON' : '❌ OFF';
-            return reply(`🤖 *Chatbot Status:* ${status}`);
+        if (!action) {
+            return await conn.sendMessage(from, { 
+                text: `🤖 *CHATBOT SETTINGS*\n\n` +
+                      `*.chatbot on* - Turn ON chatbot\n` +
+                      `*.chatbot off* - Turn OFF chatbot\n` +
+                      `*.chatbot group on* - Turn ON for group only\n` +
+                      `*.chatbot group off* - Turn OFF for group\n` +
+                      `*.chatbot private on* - Turn ON for private\n` +
+                      `*.chatbot private off* - Turn OFF for private\n\n` +
+                      `*Current Status:*\n` +
+                      `• Group Chatbot: ${config.GROUP_CHATBOT ? '✅ ON' : '❌ OFF'}\n` +
+                      `• Private Chatbot: ${config.PRIVATE_CHATBOT ? '✅ ON' : '❌ OFF'}`
+            }, { quoted: mek });
         }
         
         if (action === 'on') {
-            global.chatbotState.enabled = true;
-            return reply(`✅ *Chatbot ENABLED*\n\nThe AI chatbot is now active and will respond to messages.`);
+            config.GROUP_CHATBOT = true;
+            config.PRIVATE_CHATBOT = true;
+            return await conn.sendMessage(from, { 
+                text: `✅ *Chatbot imewashwa kwa Group na Private!*`
+            }, { quoted: mek });
         }
         
         if (action === 'off') {
-            global.chatbotState.enabled = false;
-            return reply(`❌ *Chatbot DISABLED*\n\nThe AI chatbot is now turned off.`);
+            config.GROUP_CHATBOT = false;
+            config.PRIVATE_CHATBOT = false;
+            return await conn.sendMessage(from, { 
+                text: `❌ *Chatbot imezimwa kwa Group na Private!*`
+            }, { quoted: mek });
         }
         
-        return reply(`❌ Invalid option. Use: .chatbot on/off/status`);
-
+        if (action === 'group') {
+            const subAction = args[1]?.toLowerCase();
+            if (subAction === 'on') {
+                config.GROUP_CHATBOT = true;
+                return await conn.sendMessage(from, { 
+                    text: `✅ *Group Chatbot imewashwa!*`
+                }, { quoted: mek });
+            } else if (subAction === 'off') {
+                config.GROUP_CHATBOT = false;
+                return await conn.sendMessage(from, { 
+                    text: `❌ *Group Chatbot imezimwa!*`
+                }, { quoted: mek });
+            }
+        }
+        
+        if (action === 'private') {
+            const subAction = args[1]?.toLowerCase();
+            if (subAction === 'on') {
+                config.PRIVATE_CHATBOT = true;
+                return await conn.sendMessage(from, { 
+                    text: `✅ *Private Chatbot imewashwa!*`
+                }, { quoted: mek });
+            } else if (subAction === 'off') {
+                config.PRIVATE_CHATBOT = false;
+                return await conn.sendMessage(from, { 
+                    text: `❌ *Private Chatbot imezimwa!*`
+                }, { quoted: mek });
+            }
+        }
+        
     } catch (e) {
-        console.error(e);
-        await reply("⚠️ Error controlling chatbot.");
+        console.error("Chatbot command error:", e);
     }
 });
 
-// ==================== AI RESPONSE HANDLER ====================
-// Add this function to your main message handler
-
-async function handleAIResponse(conn, mek, m) {
+// System ya kukamata messages kujibu automatikally
+module.exports.handleMessage = async (conn, m) => {
     try {
-        // Check if chatbot is enabled
-        if (!global.chatbotState || !global.chatbotState.enabled) return;
+        const { body, from, sender, isGroup, quoted } = m;
+        const message = body?.toLowerCase()?.trim();
         
-        const message = m.messages ? m.messages[0] : m;
-        const from = message.key.remoteJid;
-        const text = message.message?.conversation || 
-                    message.message?.extendedTextMessage?.text || 
-                    message.message?.imageMessage?.caption ||
-                    "";
+        if (!message) return;
         
-        // Skip if no text or message is from bot itself
-        if (!text || message.key.fromMe) return;
+        // Check ikiwa ni command
+        if (message.startsWith(config.PREFIX)) return;
         
-        const isGroup = from.endsWith('@g.us');
-        
-        // Simple AI responses
-        const responses = {
-            greetings: [
-                "Hello! 👋 How can I help you today?",
-                "Hi there! 😊 What's on your mind?",
-                "Hey! I'm your AI assistant. How can I assist you?",
-                "Greetings! 🤖 Ready to chat!"
-            ],
-            
-            questions: {
-                "how are you": "I'm doing great, thanks for asking! How about you?",
-                "your name": "I'm RAHEEM-CM AI Bot! Nice to meet you!",
-                "who created you": "I was created by Abdulrahim (RAHEEM-CM)!",
-                "what can you do": "I can chat, answer questions, tell jokes, and help with information!",
-                "help": "I can help with:\n• General chat\n• Information\n• Jokes\n• Facts\n• Translations\nJust ask me anything!"
-            },
-            
-            jokes: [
-                "Why don't scientists trust atoms?\nBecause they make up everything! 😄",
-                "Why did the scarecrow win an award?\nBecause he was outstanding in his field! 🌾",
-                "What do you call a fake noodle?\nAn Impasta! 🍝",
-                "Why don't eggs tell jokes?\nThey'd crack each other up! 🥚"
-            ]
-        };
-        
-        // Process message
-        let response = "";
-        const lowerText = text.toLowerCase();
-        
-        // Check for specific questions
-        for (const [keyword, answer] of Object.entries(responses.questions)) {
-            if (lowerText.includes(keyword)) {
-                response = answer;
-                break;
-            }
+        // Check ikiwa ni group na group chatbot iko ON
+        if (isGroup && config.GROUP_CHATBOT) {
+            // Jibu messages kwenye group
+            await handleChatbotResponse(conn, m, true);
         }
         
-        // If no specific answer
-        if (!response) {
-            if (lowerText.includes('joke')) {
-                response = responses.jokes[Math.floor(Math.random() * responses.jokes.length)];
-            } 
-            else if (lowerText.match(/(hello|hi|hey|habari|mambo)/)) {
-                response = responses.greetings[Math.floor(Math.random() * responses.greetings.length)];
-            }
-            else {
-                // Generic response
-                const genericResponses = [
-                    `Interesting! Tell me more about that.`,
-                    "I see! What else would you like to know?",
-                    "That's cool! 😎 How can I assist you further?",
-                    "Thanks for sharing! Anything specific you'd like to ask?"
-                ];
-                response = genericResponses[Math.floor(Math.random() * genericResponses.length)];
-            }
+        // Check ikiwa ni private na private chatbot iko ON
+        if (!isGroup && config.PRIVATE_CHATBOT) {
+            // Jibu messages za private
+            await handleChatbotResponse(conn, m, false);
         }
-        
-        // Send response
-        await conn.sendMessage(from, { 
-            text: `🤖 *AI:* ${response}` 
-        }, { quoted: message });
         
     } catch (e) {
-        console.error("AI Response Error:", e);
+        console.error("Chatbot handler error:", e);
+    }
+};
+
+// Function ya kujibu messages
+async function handleChatbotResponse(conn, m, isGroup) {
+    try {
+        const { body, from, sender, quoted } = m;
+        const userId = sender.split('@')[0];
+        const userMessage = body.trim();
+        
+        // Usijibu yenyewe
+        if (sender === conn.user.id) return;
+        
+        // Usijibu commands
+        if (userMessage.startsWith(config.PREFIX)) return;
+        
+        // Tengeneza mazungumzo ya mtumiaji
+        if (!userChats.has(userId)) {
+            userChats.set(userId, []);
+        }
+        
+        const userConversation = userChats.get(userId);
+        userConversation.push(`User: ${userMessage}`);
+        
+        // Weka kikomo cha mazungumzo (last 10 messages)
+        if (userConversation.length > 10) {
+            userConversation.shift();
+        }
+        
+        // Tengeneza context kutoka kwa mazungumzo ya nyuma
+        const context = userConversation.join('\n');
+        
+        // Tuma kwa AI API
+        const aiResponse = await getAIResponse(userMessage, context, isGroup);
+        
+        if (aiResponse) {
+            // Ongeza jibu kwenye mazungumzo
+            userConversation.push(`AI: ${aiResponse}`);
+            
+            // Tuma jibu
+            await conn.sendMessage(from, { 
+                text: aiResponse 
+            }, { quoted: m });
+        }
+        
+    } catch (e) {
+        console.error("Chatbot response error:", e);
     }
 }
 
-// Export for use in main file
-module.exports = { handleAIResponse };
+// Function ya kupata majibu kutoka AI APIs
+async function getAIResponse(message, context, isGroup) {
+    try {
+        // API 1: Dark API (ya bure)
+        try {
+            const response = await axios.post('https://darkapi--hfproject.hf.space/chat', {
+                message: message,
+                context: context
+            }, { timeout: 10000 });
+            
+            if (response.data && response.data.response) {
+                return response.data.response;
+            }
+        } catch (e) {
+            // API 1 imeshindwa, jaribu API 2
+        }
+        
+        // API 2: Free ChatGPT API
+        try {
+            const response = await axios.get(`https://api.azz.biz.id/api/chatgpt?q=${encodeURIComponent(message)}&key=free`, {
+                timeout: 10000
+            });
+            
+            if (response.data && response.data.respon) {
+                return response.data.respon;
+            }
+        } catch (e) {
+            // API 2 imeshindwa, jaribu API 3
+        }
+        
+        // API 3: Simple AI (fallback)
+        try {
+            const response = await axios.get(`https://api.siputzx.my.id/api/ai/simi?text=${encodeURIComponent(message)}`, {
+                timeout: 8000
+            });
+            
+            if (response.data && response.data.result) {
+                return response.data.result;
+            }
+        } catch (e) {
+            // API 3 imeshindwa
+        }
+        
+        // Default response ikiwa APIs zote zimeshindwa
+        const defaultResponses = [
+            "Naelewa ulichosema!",
+            "Hiyo ni interesting!",
+            "Unaweza kuelezea zaidi?",
+            "Nimekuelewa!",
+            "Asante kwa kuongea nami!",
+            "Hiyo ni nzuri!"
+        ];
+        
+        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        
+    } catch (error) {
+        console.error("AI API error:", error);
+        return "Samahani, sijaweza kukujibu kwa sasa. Jaribu tena baadaye.";
+    }
+}
+
+// Ongeza hizi settings kwenye config.js yako:
+/*
+// Chatbot Settings
+config.GROUP_CHATBOT = false;    // Chatbot kwa group
+config.PRIVATE_CHATBOT = false;  // Chatbot kwa private
+*/
