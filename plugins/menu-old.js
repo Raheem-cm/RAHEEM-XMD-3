@@ -11,14 +11,14 @@ cmd({
     try {
         
         const header = `
-┏━━━⬣  *${config.BOT_NAME || 'RAHEEM-XMD-3'}* ⬣━━━━━┓
+┏━━━⬣  *${config.BOT_NAME || 'RAHEEM-XMD-3'}* ⬣━━┓
 ┃
 ┃  👤 *User:* @${m.sender.split('@')[0]}
 ┃  📍 *Prefix:* ${config.PREFIX}
 ┃  🎛️ *Mode:* ${config.MODE}
 ┃  ⚡ *Status:* Active
 ┃
-┗━━━━━━━━━━━━━━━━━━━┛
+┗━━━━━━━━━━━━━━━━━┛
 `;
 
         const menu = `${header}
@@ -160,7 +160,7 @@ cmd({
                         title: "RAHEEM-XMD V1.0.0",
                         body: "MULTI-DEVICE WHATSAPP BOT",
                         mediaType: 1,
-                        sourceUrl: "https://github.com/",
+                        sourceUrl: "https://github.com/Raheem-cm/RAHEEM-XMD-3",
                         thumbnailUrl: "https://files.catbox.moe/9gl0l8.jpg",
                         renderLargerThumbnail: false,
                         showAdAttribution: true
