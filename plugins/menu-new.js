@@ -287,12 +287,14 @@ cmd({
         await conn.sendMessage(
             from,
             {
-                text: menu.trim(),
+                image: { url: "https://files.catbox.moe/9gl0l8.jpg" }, // Picha yako hapa
+                caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
+                    forwardingScore: 999,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363249960782857@newsletter',
+                        newsletterJid: ' 12036339947097598@newsletter',
                         newsletterName: "RAHEEM-XMD",
                         serverMessageId: 1
                     }
@@ -303,6 +305,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ Menu system encountered an error." }, { quoted: mek });
+        await conn.sendMessage(from, { text: "❌ Menu error!" }, { quoted: mek });
     }
 });
