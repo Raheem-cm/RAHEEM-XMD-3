@@ -1,71 +1,49 @@
+  const { cmd } = require('../command');
+const os = require("os");
+const { runtime } = require('../lib/functions');
 const config = require('../config');
-const { cmd, commands } = require('../command');
-const os = require('os');
 
 cmd({
     pattern: "alive",
-    desc: "Check if the bot is active",
+    alias: ["bot", "online"],
+    desc: "Check bot is alive or not",
     category: "main",
-    react: "📟",
+    react: "✌",
     filename: __filename
-}, async (conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, groupMetadata, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
+},
+async (conn, mek, m, { from, sender, reply }) => {
     try {
-        // Mahesabu ya Uptime
-        const uptime = process.uptime();
-        const days = Math.floor(uptime / (24 * 3600));
-        const hours = Math.floor((uptime % (24 * 3600)) / 3600);
-        const mins = Math.floor((uptime % 3600) / 60);
-        const secs = Math.floor(uptime % 60);
-        const uptimeString = `${days}d ${hours}h ${mins}m ${secs}s`;
-
-        const aliveMsg = `
-*╭──┈〔  ${config.BOT_NAME || 'RAHEEM-XMD-3'}  〕┈──*
-┃
-┃ 🟢 *Status:* Online & Active
-┃ 👤 *User:* ${pushname}
-┃ 📍 *Prefix:* ${config.PREFIX}
-┃ ⏳ *Uptime:* ${uptimeString}
-┃ 🖥️ *Platform:* ${os.hostname()}
-┃ 📟 *Version:* 1.0.0
-┃ 🌐 *Mode:* ${config.MODE}
-┃
-╰━━━━━━━━━━━━━━━━━━┈
-
-> *“Innovation distinguishes between a leader and a follower.”*
-
-*Type ${config.PREFIX}menu to see my commands.*
+        const status = `
+❖ *🤖 RAHEEM BOT STATUS* ❖─╮
+┃ 🟢 *Online & Active*
+┃ 👤 *Owner:* ${config.OWNER_NAME}
+┃ ⏳ *Uptime:* ${runtime(process.uptime())}
+┃ 💾 *Memory:* ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB / ${(os.totalmem() / 1024 / 1024).toFixed(2)}MB
+┃ ⚙️ *Mode:* ${config.MODE}
+┃ 🔖 *Prefix:* ${config.PREFIX}
+┃ 💻 *Host:* ${os.hostname()}
+┃ 🔢 *Version:* 2.0.0
+╰────────────────────────────╯
+    ⚡ Powered by RAHEEM CM ⚡
 `;
 
-        await conn.sendMessage(
-            from,
-            {
-                image: { url: "https://files.catbox.moe/9gl0l8.jpg" }, // Picha yako ile ile kali
-                caption: aliveMsg.trim(),
-                contextInfo: {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363249960782857@newsletter',
-                        newsletterName: "RAHEEM-XMD SUPPORT",
-                        serverMessageId: 1
-                    },
-                    externalAdReply: {
-                        title: "RAHEEM-XMD IS ALIVE",
-                        body: "Multi-Device WhatsApp Bot",
-                        mediaType: 1,
-                        sourceUrl: "https://github.com/",
-                        thumbnailUrl: "https://files.catbox.moe/9gl0l8.jpg",
-                        renderLargerThumbnail: true,
-                        showAdAttribution: true
-                    }
+        await conn.sendMessage(from, {
+            image: { url: `https://files.catbox.moe/2iyu0h.jpeg` },
+            caption: status,
+            contextInfo: {
+                mentionedJid: [m.sender],
+                forwardingScore: 1000,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363399470975987@newsletter',
+                    newsletterName: 'RAHEEM-XMD-3🪀',
+                    serverMessageId: 143
                 }
-            },
-            { quoted: mek }
-        );
+            }
+        }, { quoted: mek });
 
     } catch (e) {
-        console.log(e);
-        reply(`❌ Error: ${e.message}`);
+        console.error("Alive Error:", e);
+        reply(`An error occurred: ${e.message}`);
     }
 });
