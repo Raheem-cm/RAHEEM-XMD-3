@@ -1,89 +1,87 @@
+ const { cmd } = require('../command');
 const config = require('../config');
-const { cmd } = require('../command');
 
 cmd({
     pattern: "owner",
-    desc: "Show Owner Control Menu",
-    category: "owner",
-    react: "👑",
+    react: "🪀", 
+    desc: "Get owner contact info (land-style)",
+    category: "main",
     filename: __filename
-}, async (conn, mek, m, { from, text }) => {
+}, 
+async (conn, mek, m, { from }) => {
     try {
-        
-        const ownerHeader = `
-╭━━〔 👑 *RAHERM-XMD-3 MASTER* 👑 〕━━┈
-┃
-┃ 👤 *Admin:* NYONI-CM
-┃ 🕹️ *Access:* AUTHORIZED ONLY
-┃ ⚡ *Status:* ROOT ACCESS
-┃ 🛰️ *Server:* SECURE-V3
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━┈
+        const ownerNumber = config.OWNER_NUMBER;
+        const ownerName = config.OWNER_NAME;
 
-> *Caution: Administrative commands ahead.*
-`;
+        // --------- Multiple Styles ---------
+        const styles = [
 
-        const ownerMenu = `${ownerHeader}
-*╭──┈〔 🛡️ MASTER CONTROL 〕┈──*
-┃ ✧ .block [number]
-┃ ✧ .unblock [number]
-┃ ✧ .fullpp (Set HD Profile)
-┃ ✧ .setpp (Set Normal Profile)
-┃ ✧ .restart (Reboot System)
-┃ ✧ .shutdown (Kill Process)
-┃ ✧ .updatecmd (Fetch Updates)
-┃ ✧ .broadcast (Global Message)
-╰──────────────┈
+`╭───〔 👑 *OWNER CONTACT* 〕───╮
+┃ 🌟 *Name*: ${ownerName}
+┃ ☎️ *Number*: ${ownerNumber}
+┃ 🛠️ *Bot*: ${config.BOT_NAME || 'RAHEEM-XMD-3'}
+┃ 🕒 *Version*: 2.0.0 Beta
+╰────────────────────────────╯
 
-*╭──┈〔 📊 DATA & LOGS 〕┈──*
-┃ ✧ .listcmd
-┃ ✧ .gjid (Get Group ID)
-┃ ✧ .jid (Get User ID)
-┃ ✧ .alive (System Check)
-┃ ✧ .ping (Latency Check)
-╰──────────────┈
+_📩 Tap on the contact card to save._
+> *Powered by RAHEEM CM*`,
 
-*╭──┈〔 🛠️ CONFIGURATIONS 〕┈──*
-┃ ✧ .setmode (Public/Private)
-┃ ✧ .setprefix (Change Prefix)
-┃ ✧ .allmenu (Full Command List)
-┃ ✧ .vv (View Once Bypass)
-╰──────────────┈
+`┏━━ ⪨ *RAHEEM-XMD-3 OWNER INFO* ⪩━━┓
+┃ 🧑‍💻 Name   : *${ownerName}*
+┃ 📞 Contact : ${ownerNumber}
+┃ ⚙️  Mode    : ${config.MODE}
+┃ 🔖 Prefix  : ${config.PREFIX}
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+> _Contact with care, this is the real dev._`,
 
-> 👤 **Lead Dev:** Nyoni-CM
-> ✅ **Access:** Verified Master
-`;
+`▄▀▄▀▄ ${config.BOT_NAME || 'RAHEEM-XMD-3'} ▄▀▄▀▄
+👑 *Owner:* ${ownerName}
+📞 *Number:* ${ownerNumber}
+🧠 *Role:* Lead Dev & Bot Creator
+🔖 *Prefix:* ${config.PREFIX}
+✨ *Version:* 2.0.0 Beta
+━━━ Powered by RAHEEM-CM ━━━`
+        ];
 
-        await conn.sendMessage(
-            from,
-            {
-                image: { url: "https://files.catbox.moe/9gl0l8.jpg" },
-                caption: ownerMenu.trim(),
-                contextInfo: {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363399470975987@newsletter',
-                        newsletterName: "RAHEEM-XMD OFFICIAL",
-                        serverMessageId: 1
-                    },
-                    externalAdReply: {
-                        title: "RAHERM-XMD OWNER PANEL",
-                        body: "AUTHORIZED ACCESS ONLY",
-                        mediaType: 1,
-                        sourceUrl: "https://github.com/Rahee-cm",
-                        thumbnailUrl: "https://files.catbox.moe/9gl0l8.jpg",
-                        renderLargerThumbnail: false,
-                        showAdAttribution: true
-                    }
+        // Random caption style
+        const caption = styles[Math.floor(Math.random() * styles.length)];
+
+        // VCard setup
+        const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${ownerName}\nTEL;type=CELL;type=VOICE;waid=${ownerNumber.replace('+', '')}:${ownerNumber}\nEND:VCARD`;
+
+        // Send the vCard
+        await conn.sendMessage(from, {
+            contacts: {
+                displayName: ownerName,
+                contacts: [{ vcard }]
+            }
+        });
+
+        // Send styled caption with image
+        await conn.sendMessage(from, {
+            image: { url: 'https://files.catbox.moe/a61zt4.jpg' },
+            caption,
+            contextInfo: {
+                mentionedJid: [`${ownerNumber.replace('+', '')}@s.whatsapp.net`],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363399470975987@newsletter',
+                    newsletterName: 'RAHEEM-XMD-3🪀',
+                    serverMessageId: 143
                 }
-            },
-            { quoted: mek }
-        );
+            }
+        }, { quoted: mek });
 
-    } catch (e) {
-        console.log(e);
-        await conn.sendMessage(from, { text: "❌ Master system encounterd an error." }, { quoted: mek });
+        // Optional background audio
+        await conn.sendMessage(from, {
+            audio: { url: 'https://files.catbox.moe/t7ul1u.mp3' },
+            mimetype: 'audio/mp4',
+            ptt: true
+        }, { quoted: mek });
+
+    } catch (error) {
+        console.error(error);
+        await conn.sendMessage(from, { text: `❌ Error: ${error.message}` }, { quoted: mek });
     }
 });
