@@ -1,15 +1,15 @@
  const config = require('../config');
 const { cmd } = require('../command');
 
-const MUSIC_URL = "https://files.catbox.moe/ah3kxe.mp3";
-const IMAGE_URL = "https://files.catbox.moe/9gl0l8.jpg";
+const MUSIC_URL = "https://files.catbox.moe/o919rq.mp3"; // Customize if needed
 
 cmd({
     pattern: "ping",
     alias: ["speed", "pong"],
-    desc: "Check bot's response speed.",
+    use: '.ping',
+    desc: "Check bot's response time.",
     category: "main",
-    react: "⚡",
+    react: "🍁",
     filename: __filename
 },
 async (conn, mek, m, { from, sender, reply }) => {
@@ -17,72 +17,113 @@ async (conn, mek, m, { from, sender, reply }) => {
         const start = new Date().getTime();
 
         // Random emoji reaction
-        const emojis = ['⚡', '🚀', '📡', '🎯', '📟', '🛸'];
+        const emojis = ['⏰', '⚡', '🚀', '🔥', '💥', '🎯', '🛸', '📡', '🧠'];
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-        await conn.sendMessage(from, { react: { text: emoji, key: mek.key } });
+
+        await conn.sendMessage(from, {
+            react: { text: emoji, key: mek.key }
+        });
 
         const end = new Date().getTime();
-        const latency = (end - start);
+        const responseTime = (end - start) / 1000;
 
-        // Modern English Styles (Slim & Sexy)
+        // Multiple fancy styles
         const styles = [
-`*🏓 PONG!*
+`╭━━━━❖ *PING TEST 1* ❖━━━━╮
+┃ ⚡ *BOT:* ${config.BOT_NAME}
+┃ 🧭 *PING:* *${responseTime.toFixed(2)}s*
+┃ 🔖 *Prefix:* ${config.PREFIX}
+╰━━━━━━━━━━━━━━━━━━━━━━━╯
+> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${config.OWNER_NAME}* 💙`,
 
-╭━━〔 *RAHEEM-XMD SPEED* 〕━━┈
-┃
-┃ ⚡ *Latency:* ${latency}ms
-┃ 👤 *Admin:* ${config.OWNER_NAME}
-┃ 📡 *Status:* Stable
-┃ 🛰️ *Server:* Secure-V3
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━┈
-> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ʀᴀʜᴇᴇᴍ-ᴄᴍ*`,
+`┏━━━⪨ *SPEED TEST* ⪩━━━┓
+┃ 🤖 *BOT:* ${config.BOT_NAME}
+┃ ⚙️ *MODE:* ${config.MODE}
+┃ 🛸 *LATENCY:* ${responseTime.toFixed(2)}s
+┃ 🎯 *OWNER:* ${config.OWNER_NAME}
+┗━━━━━━━━━━━━━━━━━━━━━┛
+> *Powered by RAHEEM-CM*`,
 
-`╭━━━〔 ⚡ *NYONI-XMD SPEED* 〕━━━┈
-┃
-┃ 🚀 *Response:* ${latency}ms
-┃ 🕹️ *Mode:* ${config.MODE}
-┃ 📟 *Vers:* 4.0.0
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━┈
-> *Speed is the heart of RAHEEM-XMD*`
+`⏱️ *Response Time:* *${responseTime.toFixed(2)} seconds*
+🤖 Bot: *${config.BOT_NAME}*
+🔋 Status: *Online*
+✨ Ping Check Complete!
+> _by ${config.OWNER_NAME}_`
         ];
 
         const caption = styles[Math.floor(Math.random() * styles.length)];
 
         await conn.sendMessage(from, {
-            image: { url: IMAGE_URL },
-            caption: caption.trim(),
+            text: caption,
             contextInfo: {
                 mentionedJid: [sender],
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
                     newsletterJid: '120363399470975987@newsletter',
-                    newsletterName: "RAHEEM-XMD OFFICIAL",
-                    serverMessageId: 1
-                },
-                externalAdReply: {
-                    title: `LATENCY: ${latency}MS`,
-                    body: "SYSTEM STATUS: ONLINE",
-                    mediaType: 1,
-                    sourceUrl: "https://github.com/Raheem-cm/RAHEEM-XMD-3",
-                    thumbnailUrl: IMAGE_URL,
-                    renderLargerThumbnail: false,
-                    showAdAttribution: true
+                    newsletterName: config.BOT_NAME || 'RAHEEM-XMD-3',
+                    serverMessageId: 143
                 }
             }
         }, { quoted: mek });
 
-        // Optional Audio
+        // Send optional audio
         await conn.sendMessage(from, {
             audio: { url: MUSIC_URL },
-            mimetype: 'audio/mpeg',
-            ptt: true // Set true to send as voice note
+            mimetype: 'audio/mp4',
+            ptt: false
         }, { quoted: mek });
 
     } catch (e) {
-        console.error(e);
+        console.error("Error in ping command:", e);
+        reply(`❌ Error: ${e.message}`);
+    }
+});
+
+
+// ✅ ping2 (enhanced)
+cmd({
+    pattern: "ping2",
+    desc: "Check bot's response time - simple test.",
+    category: "main",
+    react: "📡",
+    filename: __filename
+},
+async (conn, mek, m, { from, reply }) => {
+    try {
+        const startTime = Date.now();
+        const message = await conn.sendMessage(from, { text: '*Checking ping... 🧪*' });
+        const endTime = Date.now();
+        const ping = endTime - startTime;
+
+        const styles2 = [
+`╭━━〔 *PING-2 RESULT* 〕━━╮
+┃ 🛠️ *BOT* : *${config.BOT_NAME}*
+┃ 🚀 *LATENCY* : *${ping} ms*
+╰━━━━━━━━━━━━━━━━━━━━╯
+> _by ${config.OWNER_NAME}_`,
+
+`┏━ *FAST SPEED CHECK* ━┓
+┃ 🔥 Ping: ${ping} ms
+┃ 👤 Owner: ${config.OWNER_NAME}
+┃ 🤖 Mode: ${config.MODE}
+┗━━━━━━━━━━━━━━━━━━━━━━┛`
+        ];
+
+        const caption2 = styles2[Math.floor(Math.random() * styles2.length)];
+
+        await conn.sendMessage(from, {
+            text: caption2
+        }, { quoted: message });
+
+        await conn.sendMessage(from, {
+            audio: { url: MUSIC_URL },
+            mimetype: 'audio/mp4',
+            ptt: false
+        }, { quoted: mek });
+
+    } catch (e) {
+        console.error("Error in ping2 command:", e);
         reply(`❌ Error: ${e.message}`);
     }
 });
