@@ -6,7 +6,7 @@
 ---
 
 <a href="https://whatsapp.com/channel/0029VbAffhD2ZjChG9DX922r">
- <img alt="RAHEEM-XMD-3" height="400" src="https://files.catbox.moe/9gl0l8.jpg"></a>
+ <img alt="RAHEEM-XMD-3" height="400" src="https://files.catbox.moe/cxyt2m.jpg"></a>
 
 ---
 
