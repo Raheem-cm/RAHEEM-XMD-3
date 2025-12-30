@@ -16,8 +16,8 @@ cmd({
 ┃ ◦ *Lead Dev:* RAHEEM-CM
 ┃ ◦ *Real Name:* ABDULRAHIM
 ┃ ◦ *Nickname:* CM18
-┃ ◦ *Age:* Undefined
-┃ ◦ *City:* Undefined
+┃ ◦ *Age:* private issue😂😪
+┃ ◦ *City:* dar es salaam
 ┃ ◦ *Role:* Passionate WhatsApp Dev
 ┃
 *╰━━━━━━━━━━━━━━━━━━━━╯*
@@ -25,7 +25,7 @@ cmd({
 *╭═══〔 🛠️ DEVELOPMENT 〕═══╮*
 ┃
 ┃ ◦ *Project:* RAHEEM-XMD
-┃ ◦ *Collaborators:* 2 Developers
+┃ ◦ *Collaborators:* 2 dev
 ┃ ◦ *Main Dev:* RAHEEM-CM
 ┃ ◦ *Status:* Active & Secure
 ┃
