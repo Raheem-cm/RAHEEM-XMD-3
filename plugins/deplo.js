@@ -1,108 +1,204 @@
- const { cmd } = require('../command');
+const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
+const { exec } = require('child_process');
 const { File } = require('megajs');
+
+// Multi-session management system
+const sessionsDir = path.join(__dirname, '../sessions_multi');
+
+// Initialize sessions directory
+if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
+}
 
 cmd({
     pattern: "deploy",
-    alias: ["installsession", "addsession"],
-    desc: "Deploy WhatsApp session from session ID",
+    alias: ["addsession", "installbot"],
+    desc: "Deploy new WhatsApp session without stopping bot",
     category: "owner",
     react: "🚀",
     filename: __filename
 }, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
-        // Check if user is owner/creator
         if (!isCreator) {
-            return reply("❌ This command is for bot owner only!");
+            return reply("❌ Owner only command!");
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .deploy <SESSION_ID>\n*Example:* `.deploy RAHEEM-XMD~abc#def123`");
+            return reply("❌ *Usage:* .deploy <SESSION_ID>\n*Example:* `.deploy RAHEEM-XMD~abc123def456`\n\n*Get Session ID:* Ask user to use `.mysession` in their bot");
         }
 
         const sessionId = text.trim();
         
-        // Check if session ID is valid format
-        if (!sessionId.includes('RAHEEM-XMD~') || sessionId.length < 20) {
-            return reply("❌ Invalid session ID format!\n\n*Correct Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `.deploy RAHEEM-XMD~abc123def456`");
+        // Validate session ID format
+        if (!sessionId.includes('RAHEEM-XMD~')) {
+            return reply("❌ *Invalid Session Format!*\n\n*Correct Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `.deploy RAHEEM-XMD~abc123def456`");
         }
 
-        reply("⏳ Downloading and deploying session...");
+        reply("⏳ *Downloading session...*");
 
-        // Extract Mega link code
+        // Extract Mega code
         const sessdata = sessionId.replace("RAHEEM-XMD~", "");
         
-        // Check if creds.json already exists
-        const credsPath = path.join(__dirname, '../sessions/creds.json');
-        if (fs.existsSync(credsPath)) {
-            // Create backup of current session
-            const backupDir = path.join(__dirname, '../sessions_backup');
-            if (!fs.existsSync(backupDir)) {
-                fs.mkdirSync(backupDir, { recursive: true });
+        // Generate unique name for this session
+        const timestamp = Date.now();
+        const sessionName = `session_${timestamp}`;
+        const sessionFolder = path.join(sessionsDir, sessionName);
+        
+        // Create session folder
+        fs.mkdirSync(sessionFolder, { recursive: true });
+        
+        // Download from Mega
+        const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+        
+        filer.download(async (err, data) => {
+            if (err) {
+                console.error("Mega download error:", err);
+                fs.rmdirSync(sessionFolder, { recursive: true });
+                return reply("❌ *Download failed!*\n\n• Check session ID\n• Session might be expired\n• Try again");
             }
-            
-            const backupFile = `creds_backup_${Date.now()}.json`;
-            fs.copyFileSync(credsPath, path.join(backupDir, backupFile));
-        }
 
-        // Download session from Mega
-        try {
-            const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
-            
-            filer.download((err, data) => {
-                if (err) {
-                    console.error("Mega download error:", err);
-                    return reply("❌ Failed to download session. Check session ID.");
-                }
-
-                // Write session file
-                fs.writeFileSync(credsPath, data);
+            try {
+                // Save creds.json
+                fs.writeFileSync(path.join(sessionFolder, 'creds.json'), data);
                 
-                // Check if file is valid JSON
-                try {
-                    JSON.parse(data.toString());
-                    
-                    reply("✅ Session deployed successfully!\n\n📱 *Next Steps:*\n1. Bot will auto-restart\n2. Wait for connection\n3. Check owner number for confirmation\n\n⚠️ *Note:* Old session was backed up.");
-                    
-                    // Auto-restart bot after 3 seconds
-                    setTimeout(() => {
-                        process.exit(0);
-                    }, 3000);
-                    
-                } catch (parseError) {
-                    // Restore backup if exists
-                    const backupDir = path.join(__dirname, '../sessions_backup');
-                    const backupFiles = fs.existsSync(backupDir) ? fs.readdirSync(backupDir).filter(f => f.endsWith('.json')).sort().reverse() : [];
-                    
-                    if (backupFiles.length > 0) {
-                        const latestBackup = path.join(backupDir, backupFiles[0]);
-                        fs.copyFileSync(latestBackup, credsPath);
-                    } else {
-                        fs.unlinkSync(credsPath);
-                    }
-                    
-                    reply("❌ Invalid session file (not JSON). Restored backup if available.");
-                }
-            });
-            
-        } catch (megaError) {
-            console.error("Mega file error:", megaError);
-            reply("❌ Error accessing Mega file. Session might be expired or invalid.");
-        }
+                // Verify it's valid JSON
+                JSON.parse(data.toString());
+                
+                // Create session config
+                const sessionConfig = {
+                    id: sessionId,
+                    name: sessionName,
+                    timestamp: timestamp,
+                    folder: sessionName,
+                    status: "pending",
+                    deployTime: new Date().toISOString()
+                };
+                
+                // Save config
+                fs.writeFileSync(
+                    path.join(sessionFolder, 'config.json'),
+                    JSON.stringify(sessionConfig, null, 2)
+                );
+                
+                // Start the new session in background
+                startNewSession(sessionName, sessionFolder);
+                
+                reply(`✅ *Session Deployed Successfully!*\n\n` +
+                     `📱 *Session Name:* ${sessionName}\n` +
+                     `🆔 *ID:* ${sessionId.substring(0, 20)}...\n` +
+                     `⏰ *Time:* ${new Date().toLocaleTimeString()}\n\n` +
+                     `🔄 *Starting bot in background...*\n` +
+                     `📞 *New bot will message you when connected.*`);
+                
+            } catch (parseError) {
+                console.error("Session parse error:", parseError);
+                fs.rmdirSync(sessionFolder, { recursive: true });
+                reply("❌ *Invalid session file!*\n\nFile is corrupted or not a valid WhatsApp session.");
+            }
+        });
 
     } catch (error) {
         console.error("Deploy command error:", error);
-        reply("❌ Error deploying session. Please check the session ID.");
+        reply("❌ *Deployment Error!*\n\nCheck console for details.");
     }
 });
 
-// Command ya kuona available sessions
+// Start new session in background
+function startNewSession(sessionName, sessionPath) {
+    const scriptContent = `
+const { spawn } = require('child_process');
+const path = require('path');
+
+// Copy main bot files to session folder
+const fs = require('fs');
+const sourceDir = path.join(__dirname, '..');
+const targetDir = path.join('${sessionPath}', 'bot_files');
+
+// Create bot files
+if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
+}
+
+// Copy essential files
+const filesToCopy = [
+    'index.js',
+    'config.js',
+    'command.js',
+    'package.json',
+    'lib/',
+    'plugins/',
+    'data/'
+];
+
+filesToCopy.forEach(file => {
+    const source = path.join(sourceDir, file);
+    const target = path.join(targetDir, file);
+    
+    if (fs.existsSync(source)) {
+        if (fs.lstatSync(source).isDirectory()) {
+            copyFolderSync(source, target);
+        } else {
+            fs.copyFileSync(source, target);
+        }
+    }
+});
+
+function copyFolderSync(source, target) {
+    if (!fs.existsSync(target)) fs.mkdirSync(target);
+    
+    fs.readdirSync(source).forEach(element => {
+        const sourcePath = path.join(source, element);
+        const targetPath = path.join(target, element);
+        
+        if (fs.lstatSync(sourcePath).isDirectory()) {
+            copyFolderSync(sourcePath, targetPath);
+        } else {
+            fs.copyFileSync(sourcePath, targetPath);
+        }
+    });
+}
+
+// Modify config to use this session
+const configFile = path.join(targetDir, 'config.js');
+if (fs.existsSync(configFile)) {
+    let configContent = fs.readFileSync(configFile, 'utf8');
+    configContent = configContent.replace(
+        /__dirname \\+ '\\/sessions\\/creds\.json'/g,
+        \`'\${sessionPath}/creds.json'\`
+    );
+    fs.writeFileSync(configFile, configContent);
+}
+
+// Start bot process
+const botProcess = spawn('node', [path.join(targetDir, 'index.js')], {
+    detached: true,
+    stdio: 'ignore'
+});
+
+botProcess.unref();
+console.log(\`✅ Bot started for session: ${sessionName}\`);
+`;
+
+    const scriptPath = path.join(sessionPath, 'start_bot.js');
+    fs.writeFileSync(scriptPath, scriptContent);
+
+    // Execute in background
+    exec(`node "${scriptPath}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Session ${sessionName} start error:`, error);
+        } else {
+            console.log(`Session ${sessionName} started successfully`);
+        }
+    });
+}
+
+// Command ya kuona sessions zote
 cmd({
-    pattern: "sessions",
-    alias: ["listsessions", "mysessions"],
-    desc: "List available sessions (owner only)",
+    pattern: "listsessions",
+    alias: ["bots", "allbots"],
+    desc: "List all deployed sessions/bots",
     category: "owner",
     react: "📋",
     filename: __filename
@@ -112,57 +208,60 @@ cmd({
             return reply("❌ Owner only command!");
         }
 
-        const sessionsDir = path.join(__dirname, '../sessions_backup');
-        
-        if (!fs.existsSync(sessionsDir)) {
-            return reply("📭 No session backups available.\n\nUse `.deploy` to add new sessions.");
-        }
-
-        const backupFiles = fs.readdirSync(sessionsDir)
-            .filter(f => f.endsWith('.json'))
+        const sessions = fs.readdirSync(sessionsDir)
+            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
             .sort()
-            .reverse()
-            .slice(0, 10); // Last 10 backups
+            .reverse();
 
-        if (backupFiles.length === 0) {
-            return reply("📭 No session backups found.");
+        if (sessions.length === 0) {
+            return reply("📭 *No deployed sessions found.*\n\nUse `.deploy <SESSION_ID>` to add new sessions.");
         }
 
-        let message = "📋 *Available Sessions*\n\n";
-        
-        backupFiles.forEach((file, index) => {
-            const filePath = path.join(sessionsDir, file);
-            const stats = fs.statSync(filePath);
-            const date = new Date(stats.mtime).toLocaleString();
-            const size = (stats.size / 1024).toFixed(2);
+        let message = `🤖 *ACTIVE SESSIONS/BOTS* 🤖\n\n`;
+        let activeCount = 0;
+        let totalCount = sessions.length;
+
+        sessions.forEach((session, index) => {
+            const sessionPath = path.join(sessionsDir, session);
+            const configPath = path.join(sessionPath, 'config.json');
             
-            message += `*${index + 1}.* ${file}\n`;
-            message += `   📅 ${date}\n`;
-            message += `   📊 ${size} KB\n\n`;
+            try {
+                if (fs.existsSync(configPath)) {
+                    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                    const time = new Date(config.deployTime).toLocaleString();
+                    
+                    message += `*${index + 1}.* ${session}\n`;
+                    message += `   🆔 ${config.id.substring(0, 15)}...\n`;
+                    message += `   ⏰ ${time}\n`;
+                    message += `   📁 ${sessionPath}\n\n`;
+                    
+                    activeCount++;
+                }
+            } catch (e) {
+                message += `*${index + 1}.* ${session} ❌ (Corrupted)\n\n`;
+            }
         });
 
-        message += `*Total Backups:* ${backupFiles.length}\n`;
-        message += `*Current Session:* ${fs.existsSync(path.join(__dirname, '../sessions/creds.json')) ? '✅ Active' : '❌ None'}\n\n`;
-        message += `*Commands:*\n`;
-        message += `• .deploy <ID> - Deploy session\n`;
-        message += `• .restoresession <number> - Restore backup\n`;
-        message += `• .deletesession <number> - Delete backup`;
+        message += `📊 *Stats:* ${activeCount}/${totalCount} active\n`;
+        message += `🚀 *Deploy new:* \`.deploy <SESSION_ID>\`\n`;
+        message += `🛑 *Stop bot:* \`.stopsession <number>\`\n`;
+        message += `🗑️ *Remove:* \`.removesession <number>\``;
 
         await conn.sendMessage(from, { text: message }, { quoted: mek });
 
     } catch (error) {
-        console.error("Sessions command error:", error);
+        console.error("Listsessions error:", error);
         reply("❌ Error listing sessions.");
     }
 });
 
-// Command ya kurestore session backup
+// Command ya kuzima session
 cmd({
-    pattern: "restoresession",
-    alias: ["restorebackup", "loadsession"],
-    desc: "Restore session from backup",
+    pattern: "stopsession",
+    alias: ["stopbot", "killsession"],
+    desc: "Stop a running session/bot",
     category: "owner",
-    react: "🔄",
+    react: "🛑",
     filename: __filename
 }, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
@@ -171,108 +270,46 @@ cmd({
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .restoresession <backup_number>\n*Example:* `.restoresession 1`");
+            return reply("❌ *Usage:* .stopsession <session_number>\n*Example:* `.stopsession 1`");
         }
 
-        const backupNum = parseInt(text);
-        if (isNaN(backupNum) || backupNum < 1) {
-            return reply("❌ Invalid backup number!");
+        const sessionNum = parseInt(text);
+        if (isNaN(sessionNum) || sessionNum < 1) {
+            return reply("❌ Invalid session number!");
         }
 
-        const sessionsDir = path.join(__dirname, '../sessions_backup');
-        if (!fs.existsSync(sessionsDir)) {
-            return reply("❌ No backup directory found.");
-        }
-
-        const backupFiles = fs.readdirSync(sessionsDir)
-            .filter(f => f.endsWith('.json'))
+        const sessions = fs.readdirSync(sessionsDir)
+            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
             .sort()
             .reverse();
 
-        if (backupNum > backupFiles.length) {
-            return reply(`❌ Backup #${backupNum} not found. Available: ${backupFiles.length}`);
+        if (sessionNum > sessions.length) {
+            return reply(`❌ Session #${sessionNum} not found!\n\nAvailable: ${sessions.length} sessions`);
         }
 
-        const backupFile = backupFiles[backupNum - 1];
-        const backupPath = path.join(sessionsDir, backupFile);
-        const credsPath = path.join(__dirname, '../sessions/creds.json');
-
-        // Backup current session first
-        if (fs.existsSync(credsPath)) {
-            const tempBackup = path.join(sessionsDir, `temp_restore_backup_${Date.now()}.json`);
-            fs.copyFileSync(credsPath, tempBackup);
-        }
-
-        // Restore backup
-        fs.copyFileSync(backupPath, credsPath);
+        const sessionName = sessions[sessionNum - 1];
+        const sessionPath = path.join(sessionsDir, sessionName);
         
-        const stats = fs.statSync(backupPath);
-        const date = new Date(stats.mtime).toLocaleString();
-
-        reply(`✅ Session restored from backup #${backupNum}!\n\n📁 *File:* ${backupFile}\n📅 *Date:* ${date}\n\n🔄 Bot will restart in 3 seconds...`);
-
-        setTimeout(() => {
-            process.exit(0);
-        }, 3000);
+        // Create stop signal file
+        const stopFile = path.join(sessionPath, 'STOP');
+        fs.writeFileSync(stopFile, '1');
+        
+        reply(`🛑 *Stopping Session #${sessionNum}*\n\n` +
+              `📱 *Session:* ${sessionName}\n` +
+              `⏳ *Status:* Stopping...\n\n` +
+              `Bot will stop within 30 seconds.`);
 
     } catch (error) {
-        console.error("Restore session error:", error);
-        reply("❌ Error restoring session.");
+        console.error("Stopsession error:", error);
+        reply("❌ Error stopping session.");
     }
 });
 
-// Command ya kutoa session ID ya sasa
+// Command ya kufuta session
 cmd({
-    pattern: "getsession",
-    alias: ["currentsession", "mysessionid"],
-    desc: "Get current session ID for sharing",
-    category: "owner",
-    react: "🔑",
-    filename: __filename
-}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
-    try {
-        if (!isCreator) {
-            return reply("❌ Owner only command!");
-        }
-
-        const credsPath = path.join(__dirname, '../sessions/creds.json');
-        
-        if (!fs.existsSync(credsPath)) {
-            return reply("❌ No active session found.");
-        }
-
-        // Read session file
-        const sessionData = fs.readFileSync(credsPath);
-        
-        // Generate unique ID for this session
-        const crypto = require('crypto');
-        const sessionHash = crypto.createHash('md5').update(sessionData).digest('hex').substring(0, 12);
-        
-        const sessionId = `RAHEEM-XMD~${sessionHash}`;
-        const fileSize = (sessionData.length / 1024).toFixed(2);
-        const modDate = new Date(fs.statSync(credsPath).mtime).toLocaleString();
-
-        const message = `🔑 *Current Session ID*\n\n` +
-                       `*Session ID:* \`${sessionId}\`\n` +
-                       `*Size:* ${fileSize} KB\n` +
-                       `*Modified:* ${modDate}\n\n` +
-                       `📤 *Share this ID:*\n\`\`\`${sessionId}\`\`\`\n\n` +
-                       `*Usage:*\n\`\`\`.deploy ${sessionId}\`\`\`\n\n` +
-                       `⚠️ *Warning:* Keep this ID private!`;
-
-        await conn.sendMessage(from, { text: message }, { quoted: mek });
-
-    } catch (error) {
-        console.error("Get session error:", error);
-        reply("❌ Error getting session ID.");
-    }
-});
-
-// Command ya kufuta session backup
-cmd({
-    pattern: "deletesession",
-    alias: ["removebackup", "clearsession"],
-    desc: "Delete session backup",
+    pattern: "removesession",
+    alias: ["deletesession", "rmbot"],
+    desc: "Remove a deployed session",
     category: "owner",
     react: "🗑️",
     filename: __filename
@@ -283,77 +320,155 @@ cmd({
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .deletesession <backup_number>\n*Example:* `.deletesession 1`");
+            return reply("❌ *Usage:* .removesession <session_number>\n*Example:* `.removesession 1`");
         }
 
-        const backupNum = parseInt(text);
-        if (isNaN(backupNum) || backupNum < 1) {
-            return reply("❌ Invalid backup number!");
+        const sessionNum = parseInt(text);
+        if (isNaN(sessionNum) || sessionNum < 1) {
+            return reply("❌ Invalid session number!");
         }
 
-        const sessionsDir = path.join(__dirname, '../sessions_backup');
-        if (!fs.existsSync(sessionsDir)) {
-            return reply("❌ No backup directory found.");
-        }
-
-        const backupFiles = fs.readdirSync(sessionsDir)
-            .filter(f => f.endsWith('.json'))
+        const sessions = fs.readdirSync(sessionsDir)
+            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
             .sort()
             .reverse();
 
-        if (backupNum > backupFiles.length) {
-            return reply(`❌ Backup #${backupNum} not found. Available: ${backupFiles.length}`);
+        if (sessionNum > sessions.length) {
+            return reply(`❌ Session #${sessionNum} not found!\n\nAvailable: ${sessions.length} sessions`);
         }
 
-        const backupFile = backupFiles[backupNum - 1];
-        const backupPath = path.join(sessionsDir, backupFile);
+        const sessionName = sessions[sessionNum - 1];
+        const sessionPath = path.join(sessionsDir, sessionName);
         
-        // Get file info before deleting
-        const stats = fs.statSync(backupPath);
-        const date = new Date(stats.mtime).toLocaleString();
-        const size = (stats.size / 1024).toFixed(2);
-
-        // Delete file
-        fs.unlinkSync(backupPath);
-
-        reply(`🗑️ *Session Backup Deleted*\n\n` +
-              `*Backup #:* ${backupNum}\n` +
-              `*File:* ${backupFile}\n` +
-              `*Date:* ${date}\n` +
-              `*Size:* ${size} KB\n\n` +
-              `✅ Backup successfully removed.`);
+        // First stop the session
+        const stopFile = path.join(sessionPath, 'STOP');
+        fs.writeFileSync(stopFile, '1');
+        
+        // Wait 5 seconds then delete
+        setTimeout(() => {
+            try {
+                // Delete folder recursively
+                fs.rmSync(sessionPath, { recursive: true, force: true });
+                console.log(`Removed session: ${sessionName}`);
+            } catch (e) {
+                console.error(`Error removing session ${sessionName}:`, e);
+            }
+        }, 5000);
+        
+        reply(`🗑️ *Removing Session #${sessionNum}*\n\n` +
+              `📱 *Session:* ${sessionName}\n` +
+              `⏳ *Status:* Stopping and deleting...\n\n` +
+              `Session will be completely removed.`);
 
     } catch (error) {
-        console.error("Delete session error:", error);
-        reply("❌ Error deleting session backup.");
+        console.error("Removesession error:", error);
+        reply("❌ Error removing session.");
     }
 });
 
-// Auto cleanup old backups (older than 7 days)
+// Command ya kuona stats
+cmd({
+    pattern: "botstats",
+    alias: ["sessionstats", "stats"],
+    desc: "Show bot deployment statistics",
+    category: "owner",
+    react: "📊",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
+    try {
+        if (!isCreator) {
+            return reply("❌ Owner only command!");
+        }
+
+        const sessions = fs.readdirSync(sessionsDir)
+            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory());
+
+        let activeSessions = 0;
+        let totalSize = 0;
+        
+        sessions.forEach(session => {
+            const sessionPath = path.join(sessionsDir, session);
+            try {
+                const stats = fs.statSync(sessionPath);
+                totalSize += stats.size;
+                
+                // Check if bot is running (has creds.json)
+                if (fs.existsSync(path.join(sessionPath, 'creds.json'))) {
+                    activeSessions++;
+                }
+            } catch (e) {
+                // Ignore errors
+            }
+        });
+
+        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+        
+        const message = `📊 *BOT DEPLOYMENT STATS*\n\n` +
+                       `🤖 *Total Sessions:* ${sessions.length}\n` +
+                       `✅ *Active Bots:* ${activeSessions}\n` +
+                       `📁 *Storage Used:* ${totalSizeMB} MB\n` +
+                       `⏰ *Uptime:* ${formatUptime(process.uptime())}\n\n` +
+                       `📈 *Capacity:* ${sessions.length}/100 sessions\n` +
+                       `💾 *Free Space:* ${getFreeSpace()} MB\n\n` +
+                       `*Commands:*\n` +
+                       `• .deploy <ID> - Add new bot\n` +
+                       `• .listsessions - View all bots\n` +
+                       `• .botstats - This stats page`;
+
+        await conn.sendMessage(from, { text: message }, { quoted: mek });
+
+    } catch (error) {
+        console.error("Botstats error:", error);
+        reply("❌ Error getting statistics.");
+    }
+});
+
+// Helper functions
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
+function getFreeSpace() {
+    try {
+        const disk = require('diskusage');
+        const info = disk.checkSync(__dirname);
+        return (info.free / (1024 * 1024)).toFixed(2);
+    } catch {
+        return "Unknown";
+    }
+}
+
+// Auto-cleanup old sessions (older than 30 days)
 setInterval(() => {
     try {
-        const sessionsDir = path.join(__dirname, '../sessions_backup');
-        if (!fs.existsSync(sessionsDir)) return;
-
-        const backupFiles = fs.readdirSync(sessionsDir)
-            .filter(f => f.endsWith('.json'));
+        const sessions = fs.readdirSync(sessionsDir)
+            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory());
 
         const now = Date.now();
-        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
-        backupFiles.forEach(file => {
-            const filePath = path.join(sessionsDir, file);
+        sessions.forEach(session => {
+            const sessionPath = path.join(sessionsDir, session);
             try {
-                const stats = fs.statSync(filePath);
-                if (now - stats.mtimeMs > sevenDays) {
-                    fs.unlinkSync(filePath);
-                    console.log(`Auto-deleted old backup: ${file}`);
+                const stats = fs.statSync(sessionPath);
+                if (now - stats.mtimeMs > thirtyDays) {
+                    // Check if STOP file exists (inactive)
+                    if (fs.existsSync(path.join(sessionPath, 'STOP'))) {
+                        fs.rmSync(sessionPath, { recursive: true, force: true });
+                        console.log(`Auto-cleaned old session: ${session}`);
+                    }
                 }
             } catch (e) {
                 // Ignore errors
             }
         });
     } catch (error) {
-        console.error("Auto cleanup error:", error);
+        console.error("Auto-cleanup error:", error);
     }
 }, 24 * 60 * 60 * 1000); // Every 24 hours
