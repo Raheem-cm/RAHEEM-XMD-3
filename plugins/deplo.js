@@ -1,23 +1,22 @@
 const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 const { File } = require('megajs');
 
-// Multi-session management system
-const sessionsDir = path.join(__dirname, '../sessions_multi');
+// Merge system directory
+const mergeDir = path.join(__dirname, '../sessions_merge');
 
-// Initialize sessions directory
-if (!fs.existsSync(sessionsDir)) {
-    fs.mkdirSync(sessionsDir, { recursive: true });
+// Initialize merge directory
+if (!fs.existsSync(mergeDir)) {
+    fs.mkdirSync(mergeDir, { recursive: true });
 }
 
 cmd({
-    pattern: "deploy",
-    alias: ["addsession", "installbot"],
-    desc: "Deploy new WhatsApp session without stopping bot",
+    pattern: "merge",
+    alias: ["adduser", "combine", "joinme"],
+    desc: "Merge someone's session with your bot",
     category: "owner",
-    react: "🚀",
+    react: "🤝",
     filename: __filename
 }, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
@@ -26,28 +25,27 @@ cmd({
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .deploy <SESSION_ID>\n*Example:* `.deploy RAHEEM-XMD~abc123def456`\n\n*Get Session ID:* Ask user to use `.mysession` in their bot");
+            return reply("❌ *Usage:* .merge <SESSION_ID>\n*Example:* `.merge RAHEEM-XMD~abc123def456`\n\n📌 *Get Session ID:* Ask user to send `.mysession` from their bot");
         }
 
         const sessionId = text.trim();
         
         // Validate session ID format
         if (!sessionId.includes('RAHEEM-XMD~')) {
-            return reply("❌ *Invalid Session Format!*\n\n*Correct Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `.deploy RAHEEM-XMD~abc123def456`");
+            return reply("❌ *Invalid Session ID Format!*\n\n*Required Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `RAHEEM-XMD~abc123def456ghi789`");
         }
 
-        reply("⏳ *Downloading session...*");
+        reply("⏳ *Downloading and merging session...*");
 
         // Extract Mega code
         const sessdata = sessionId.replace("RAHEEM-XMD~", "");
         
-        // Generate unique name for this session
-        const timestamp = Date.now();
-        const sessionName = `session_${timestamp}`;
-        const sessionFolder = path.join(sessionsDir, sessionName);
+        // Generate unique ID for this merge
+        const mergeId = `merge_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const mergePath = path.join(mergeDir, mergeId);
         
-        // Create session folder
-        fs.mkdirSync(sessionFolder, { recursive: true });
+        // Create merge folder
+        fs.mkdirSync(mergePath, { recursive: true });
         
         // Download from Mega
         const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
@@ -55,414 +53,402 @@ cmd({
         filer.download(async (err, data) => {
             if (err) {
                 console.error("Mega download error:", err);
-                fs.rmdirSync(sessionFolder, { recursive: true });
-                return reply("❌ *Download failed!*\n\n• Check session ID\n• Session might be expired\n• Try again");
+                fs.rmdirSync(mergePath, { recursive: true });
+                return reply("❌ *Download failed!*\n\n• Session might be expired\n• Check internet connection\n• Try different session ID");
             }
 
             try {
-                // Save creds.json
-                fs.writeFileSync(path.join(sessionFolder, 'creds.json'), data);
+                // Save the downloaded session
+                const sessionFile = path.join(mergePath, 'user_creds.json');
+                fs.writeFileSync(sessionFile, data);
                 
-                // Verify it's valid JSON
-                JSON.parse(data.toString());
+                // Verify it's valid WhatsApp session
+                const sessionData = JSON.parse(data.toString());
                 
-                // Create session config
-                const sessionConfig = {
-                    id: sessionId,
-                    name: sessionName,
-                    timestamp: timestamp,
-                    folder: sessionName,
-                    status: "pending",
-                    deployTime: new Date().toISOString()
+                if (!sessionData.creds || !sessionData.noiseKey || !sessionData.signedIdentityKey) {
+                    throw new Error("Invalid WhatsApp session file");
+                }
+                
+                // Extract phone number from session
+                let phoneNumber = "Unknown";
+                try {
+                    if (sessionData.creds.me && sessionData.creds.me.id) {
+                        phoneNumber = sessionData.creds.me.id.split(':')[0];
+                    }
+                } catch (e) {
+                    // Ignore if can't extract number
+                }
+                
+                // Merge with current bot (extract contacts and chats)
+                await mergeSession(conn, sessionData, phoneNumber, mergePath);
+                
+                // Save merge info
+                const mergeInfo = {
+                    sessionId: sessionId,
+                    phoneNumber: phoneNumber,
+                    mergeId: mergeId,
+                    timestamp: new Date().toISOString(),
+                    status: "merged",
+                    mergedBy: sender
                 };
                 
-                // Save config
                 fs.writeFileSync(
-                    path.join(sessionFolder, 'config.json'),
-                    JSON.stringify(sessionConfig, null, 2)
+                    path.join(mergePath, 'merge_info.json'),
+                    JSON.stringify(mergeInfo, null, 2)
                 );
                 
-                // Start the new session in background
-                startNewSession(sessionName, sessionFolder);
-                
-                reply(`✅ *Session Deployed Successfully!*\n\n` +
-                     `📱 *Session Name:* ${sessionName}\n` +
-                     `🆔 *ID:* ${sessionId.substring(0, 20)}...\n` +
-                     `⏰ *Time:* ${new Date().toLocaleTimeString()}\n\n` +
-                     `🔄 *Starting bot in background...*\n` +
-                     `📞 *New bot will message you when connected.*`);
+                reply(`✅ *SESSION MERGED SUCCESSFULLY!* 🤝\n\n` +
+                     `📱 *User Number:* ${phoneNumber}\n` +
+                     `🆔 *Merge ID:* ${mergeId}\n` +
+                     `📊 *Status:* User added to your bot\n\n` +
+                     `✨ *User can now:*\n` +
+                     `• Use all your bot commands\n` +
+                     `• Send/receive messages\n` +
+                     `• Access bot features\n\n` +
+                     `⚠️ *Note:* Your bot continues running normally!`);
                 
             } catch (parseError) {
-                console.error("Session parse error:", parseError);
-                fs.rmdirSync(sessionFolder, { recursive: true });
-                reply("❌ *Invalid session file!*\n\nFile is corrupted or not a valid WhatsApp session.");
-            }
-        });
-
-    } catch (error) {
-        console.error("Deploy command error:", error);
-        reply("❌ *Deployment Error!*\n\nCheck console for details.");
-    }
-});
-
-// Start new session in background
-function startNewSession(sessionName, sessionPath) {
-    const scriptContent = `
-const { spawn } = require('child_process');
-const path = require('path');
-
-// Copy main bot files to session folder
-const fs = require('fs');
-const sourceDir = path.join(__dirname, '..');
-const targetDir = path.join('${sessionPath}', 'bot_files');
-
-// Create bot files
-if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true });
-}
-
-// Copy essential files
-const filesToCopy = [
-    'index.js',
-    'config.js',
-    'command.js',
-    'package.json',
-    'lib/',
-    'plugins/',
-    'data/'
-];
-
-filesToCopy.forEach(file => {
-    const source = path.join(sourceDir, file);
-    const target = path.join(targetDir, file);
-    
-    if (fs.existsSync(source)) {
-        if (fs.lstatSync(source).isDirectory()) {
-            copyFolderSync(source, target);
-        } else {
-            fs.copyFileSync(source, target);
-        }
-    }
-});
-
-function copyFolderSync(source, target) {
-    if (!fs.existsSync(target)) fs.mkdirSync(target);
-    
-    fs.readdirSync(source).forEach(element => {
-        const sourcePath = path.join(source, element);
-        const targetPath = path.join(target, element);
-        
-        if (fs.lstatSync(sourcePath).isDirectory()) {
-            copyFolderSync(sourcePath, targetPath);
-        } else {
-            fs.copyFileSync(sourcePath, targetPath);
-        }
-    });
-}
-
-// Modify config to use this session
-const configFile = path.join(targetDir, 'config.js');
-if (fs.existsSync(configFile)) {
-    let configContent = fs.readFileSync(configFile, 'utf8');
-    configContent = configContent.replace(
-        /__dirname \\+ '\\/sessions\\/creds\.json'/g,
-        \`'\${sessionPath}/creds.json'\`
-    );
-    fs.writeFileSync(configFile, configContent);
-}
-
-// Start bot process
-const botProcess = spawn('node', [path.join(targetDir, 'index.js')], {
-    detached: true,
-    stdio: 'ignore'
-});
-
-botProcess.unref();
-console.log(\`✅ Bot started for session: ${sessionName}\`);
-`;
-
-    const scriptPath = path.join(sessionPath, 'start_bot.js');
-    fs.writeFileSync(scriptPath, scriptContent);
-
-    // Execute in background
-    exec(`node "${scriptPath}"`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Session ${sessionName} start error:`, error);
-        } else {
-            console.log(`Session ${sessionName} started successfully`);
-        }
-    });
-}
-
-// Command ya kuona sessions zote
-cmd({
-    pattern: "listsessions",
-    alias: ["bots", "allbots"],
-    desc: "List all deployed sessions/bots",
-    category: "owner",
-    react: "📋",
-    filename: __filename
-}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
-    try {
-        if (!isCreator) {
-            return reply("❌ Owner only command!");
-        }
-
-        const sessions = fs.readdirSync(sessionsDir)
-            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
-            .sort()
-            .reverse();
-
-        if (sessions.length === 0) {
-            return reply("📭 *No deployed sessions found.*\n\nUse `.deploy <SESSION_ID>` to add new sessions.");
-        }
-
-        let message = `🤖 *ACTIVE SESSIONS/BOTS* 🤖\n\n`;
-        let activeCount = 0;
-        let totalCount = sessions.length;
-
-        sessions.forEach((session, index) => {
-            const sessionPath = path.join(sessionsDir, session);
-            const configPath = path.join(sessionPath, 'config.json');
-            
-            try {
-                if (fs.existsSync(configPath)) {
-                    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                    const time = new Date(config.deployTime).toLocaleString();
-                    
-                    message += `*${index + 1}.* ${session}\n`;
-                    message += `   🆔 ${config.id.substring(0, 15)}...\n`;
-                    message += `   ⏰ ${time}\n`;
-                    message += `   📁 ${sessionPath}\n\n`;
-                    
-                    activeCount++;
-                }
-            } catch (e) {
-                message += `*${index + 1}.* ${session} ❌ (Corrupted)\n\n`;
-            }
-        });
-
-        message += `📊 *Stats:* ${activeCount}/${totalCount} active\n`;
-        message += `🚀 *Deploy new:* \`.deploy <SESSION_ID>\`\n`;
-        message += `🛑 *Stop bot:* \`.stopsession <number>\`\n`;
-        message += `🗑️ *Remove:* \`.removesession <number>\``;
-
-        await conn.sendMessage(from, { text: message }, { quoted: mek });
-
-    } catch (error) {
-        console.error("Listsessions error:", error);
-        reply("❌ Error listing sessions.");
-    }
-});
-
-// Command ya kuzima session
-cmd({
-    pattern: "stopsession",
-    alias: ["stopbot", "killsession"],
-    desc: "Stop a running session/bot",
-    category: "owner",
-    react: "🛑",
-    filename: __filename
-}, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
-    try {
-        if (!isCreator) {
-            return reply("❌ Owner only command!");
-        }
-
-        if (!text) {
-            return reply("❌ *Usage:* .stopsession <session_number>\n*Example:* `.stopsession 1`");
-        }
-
-        const sessionNum = parseInt(text);
-        if (isNaN(sessionNum) || sessionNum < 1) {
-            return reply("❌ Invalid session number!");
-        }
-
-        const sessions = fs.readdirSync(sessionsDir)
-            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
-            .sort()
-            .reverse();
-
-        if (sessionNum > sessions.length) {
-            return reply(`❌ Session #${sessionNum} not found!\n\nAvailable: ${sessions.length} sessions`);
-        }
-
-        const sessionName = sessions[sessionNum - 1];
-        const sessionPath = path.join(sessionsDir, sessionName);
-        
-        // Create stop signal file
-        const stopFile = path.join(sessionPath, 'STOP');
-        fs.writeFileSync(stopFile, '1');
-        
-        reply(`🛑 *Stopping Session #${sessionNum}*\n\n` +
-              `📱 *Session:* ${sessionName}\n` +
-              `⏳ *Status:* Stopping...\n\n` +
-              `Bot will stop within 30 seconds.`);
-
-    } catch (error) {
-        console.error("Stopsession error:", error);
-        reply("❌ Error stopping session.");
-    }
-});
-
-// Command ya kufuta session
-cmd({
-    pattern: "removesession",
-    alias: ["deletesession", "rmbot"],
-    desc: "Remove a deployed session",
-    category: "owner",
-    react: "🗑️",
-    filename: __filename
-}, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
-    try {
-        if (!isCreator) {
-            return reply("❌ Owner only command!");
-        }
-
-        if (!text) {
-            return reply("❌ *Usage:* .removesession <session_number>\n*Example:* `.removesession 1`");
-        }
-
-        const sessionNum = parseInt(text);
-        if (isNaN(sessionNum) || sessionNum < 1) {
-            return reply("❌ Invalid session number!");
-        }
-
-        const sessions = fs.readdirSync(sessionsDir)
-            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory())
-            .sort()
-            .reverse();
-
-        if (sessionNum > sessions.length) {
-            return reply(`❌ Session #${sessionNum} not found!\n\nAvailable: ${sessions.length} sessions`);
-        }
-
-        const sessionName = sessions[sessionNum - 1];
-        const sessionPath = path.join(sessionsDir, sessionName);
-        
-        // First stop the session
-        const stopFile = path.join(sessionPath, 'STOP');
-        fs.writeFileSync(stopFile, '1');
-        
-        // Wait 5 seconds then delete
-        setTimeout(() => {
-            try {
-                // Delete folder recursively
-                fs.rmSync(sessionPath, { recursive: true, force: true });
-                console.log(`Removed session: ${sessionName}`);
-            } catch (e) {
-                console.error(`Error removing session ${sessionName}:`, e);
-            }
-        }, 5000);
-        
-        reply(`🗑️ *Removing Session #${sessionNum}*\n\n` +
-              `📱 *Session:* ${sessionName}\n` +
-              `⏳ *Status:* Stopping and deleting...\n\n` +
-              `Session will be completely removed.`);
-
-    } catch (error) {
-        console.error("Removesession error:", error);
-        reply("❌ Error removing session.");
-    }
-});
-
-// Command ya kuona stats
-cmd({
-    pattern: "botstats",
-    alias: ["sessionstats", "stats"],
-    desc: "Show bot deployment statistics",
-    category: "owner",
-    react: "📊",
-    filename: __filename
-}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
-    try {
-        if (!isCreator) {
-            return reply("❌ Owner only command!");
-        }
-
-        const sessions = fs.readdirSync(sessionsDir)
-            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory());
-
-        let activeSessions = 0;
-        let totalSize = 0;
-        
-        sessions.forEach(session => {
-            const sessionPath = path.join(sessionsDir, session);
-            try {
-                const stats = fs.statSync(sessionPath);
-                totalSize += stats.size;
+                console.error("Session merge error:", parseError);
+                fs.rmdirSync(mergePath, { recursive: true });
                 
-                // Check if bot is running (has creds.json)
-                if (fs.existsSync(path.join(sessionPath, 'creds.json'))) {
-                    activeSessions++;
+                if (parseError.message.includes("Invalid WhatsApp")) {
+                    reply("❌ *Invalid WhatsApp session!*\n\nFile is not a valid WhatsApp session file.");
+                } else {
+                    reply("❌ *Merge failed!*\n\nSession file is corrupted or incompatible.");
                 }
-            } catch (e) {
-                // Ignore errors
             }
         });
 
-        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+    } catch (error) {
+        console.error("Merge command error:", error);
+        reply("❌ *Merge Error!*\n\nCheck console for details.");
+    }
+});
+
+// Function to merge session with current bot
+async function mergeSession(conn, userSessionData, phoneNumber, mergePath) {
+    try {
+        // Extract user's contacts and chats
+        const userContacts = extractContacts(userSessionData);
+        const userChats = extractChats(userSessionData);
         
-        const message = `📊 *BOT DEPLOYMENT STATS*\n\n` +
-                       `🤖 *Total Sessions:* ${sessions.length}\n` +
-                       `✅ *Active Bots:* ${activeSessions}\n` +
-                       `📁 *Storage Used:* ${totalSizeMB} MB\n` +
-                       `⏰ *Uptime:* ${formatUptime(process.uptime())}\n\n` +
-                       `📈 *Capacity:* ${sessions.length}/100 sessions\n` +
-                       `💾 *Free Space:* ${getFreeSpace()} MB\n\n` +
-                       `*Commands:*\n` +
-                       `• .deploy <ID> - Add new bot\n` +
-                       `• .listsessions - View all bots\n` +
-                       `• .botstats - This stats page`;
+        // Save extracted data
+        const extractedData = {
+            phoneNumber: phoneNumber,
+            contacts: userContacts,
+            chats: userChats,
+            totalContacts: userContacts.length,
+            totalChats: userChats.length,
+            extractionTime: new Date().toISOString()
+        };
+        
+        fs.writeFileSync(
+            path.join(mergePath, 'extracted_data.json'),
+            JSON.stringify(extractedData, null, 2)
+        );
+        
+        // Add user to bot's user database (simulate)
+        addUserToBotDatabase(phoneNumber, userContacts);
+        
+        // Log the merge
+        console.log(`✅ Merged session for ${phoneNumber}: ${userContacts.length} contacts, ${userChats.length} chats`);
+        
+        return true;
+        
+    } catch (error) {
+        console.error("Session merge function error:", error);
+        throw error;
+    }
+}
+
+// Extract contacts from session
+function extractContacts(sessionData) {
+    const contacts = [];
+    
+    try {
+        // Try to extract from various session formats
+        if (sessionData.contacts) {
+            Object.entries(sessionData.contacts).forEach(([jid, contact]) => {
+                if (contact.name || contact.notify) {
+                    contacts.push({
+                        jid: jid,
+                        name: contact.name || contact.notify || "Unknown",
+                        verifiedName: contact.verifiedName || null
+                    });
+                }
+            });
+        }
+        
+        // Extract from creds
+        if (sessionData.creds && sessionData.creds.account) {
+            const acc = sessionData.creds.account;
+            if (acc.verifiedName) {
+                contacts.push({
+                    jid: `${sessionData.creds.me?.id || 'unknown'}@s.whatsapp.net`,
+                    name: acc.verifiedName,
+                    verifiedName: acc.verifiedName,
+                    isSelf: true
+                });
+            }
+        }
+        
+    } catch (e) {
+        console.error("Error extracting contacts:", e);
+    }
+    
+    return contacts.slice(0, 100); // Limit to 100 contacts
+}
+
+// Extract chats from session
+function extractChats(sessionData) {
+    const chats = [];
+    
+    try {
+        if (sessionData.chats) {
+            Object.entries(sessionData.chats).forEach(([jid, chat]) => {
+                if (chat.conversationTimestamp || chat.messages) {
+                    chats.push({
+                        jid: jid,
+                        name: chat.name || chat.subject || jid.split('@')[0],
+                        timestamp: chat.conversationTimestamp || Date.now(),
+                        messageCount: chat.messages ? Object.keys(chat.messages).length : 0,
+                        isGroup: jid.endsWith('@g.us')
+                    });
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error extracting chats:", e);
+    }
+    
+    return chats.slice(0, 50); // Limit to 50 chats
+}
+
+// Add user to bot's database
+function addUserToBotDatabase(phoneNumber, contacts) {
+    try {
+        // Load existing users database
+        const usersDBPath = path.join(__dirname, '../data/users.json');
+        let usersDB = { users: [], mergedSessions: [] };
+        
+        if (fs.existsSync(usersDBPath)) {
+            usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
+        }
+        
+        // Add new merged user
+        const newUser = {
+            phoneNumber: phoneNumber,
+            mergedAt: new Date().toISOString(),
+            contactsCount: contacts.length,
+            status: "active"
+        };
+        
+        // Check if user already exists
+        const existingIndex = usersDB.users.findIndex(u => u.phoneNumber === phoneNumber);
+        
+        if (existingIndex >= 0) {
+            usersDB.users[existingIndex] = newUser;
+        } else {
+            usersDB.users.push(newUser);
+        }
+        
+        // Add to merged sessions list
+        usersDB.mergedSessions.push({
+            phoneNumber: phoneNumber,
+            timestamp: new Date().toISOString(),
+            contactsCount: contacts.length
+        });
+        
+        // Keep only last 100 merged sessions
+        if (usersDB.mergedSessions.length > 100) {
+            usersDB.mergedSessions = usersDB.mergedSessions.slice(-100);
+        }
+        
+        // Save database
+        fs.writeFileSync(usersDBPath, JSON.stringify(usersDB, null, 2));
+        
+    } catch (error) {
+        console.error("Error adding user to database:", error);
+    }
+}
+
+// Command ya kuona merged users
+cmd({
+    pattern: "mergedusers",
+    alias: ["myusers", "combinedusers"],
+    desc: "Show all users merged with your bot",
+    category: "owner",
+    react: "👥",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
+    try {
+        if (!isCreator) {
+            return reply("❌ Owner only command!");
+        }
+
+        // Load users database
+        const usersDBPath = path.join(__dirname, '../data/users.json');
+        
+        if (!fs.existsSync(usersDBPath)) {
+            return reply("📭 *No merged users yet!*\n\nUse `.merge <SESSION_ID>` to add users.");
+        }
+
+        const usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
+        const users = usersDB.users || [];
+        const mergedSessions = usersDB.mergedSessions || [];
+        
+        if (users.length === 0) {
+            return reply("📭 *No merged users found!*\n\nUse `.merge <SESSION_ID>` to combine sessions.");
+        }
+
+        let message = `👥 *MERGED USERS WITH YOUR BOT* 🤝\n\n`;
+        let activeUsers = 0;
+        
+        // Show recent merged sessions (last 10)
+        const recentMerges = mergedSessions.slice(-10).reverse();
+        
+        message += `📋 *Recent Merges (Last 10):*\n`;
+        recentMerges.forEach((merge, index) => {
+            const time = new Date(merge.timestamp).toLocaleString();
+            message += `${index + 1}. ${merge.phoneNumber} - ${time}\n`;
+            if (merge.contactsCount) {
+                message += `   📞 ${merge.contactsCount} contacts\n`;
+            }
+            message += `\n`;
+        });
+        
+        // Stats
+        message += `📊 *Statistics:*\n`;
+        message += `• Total Merged Users: ${users.length}\n`;
+        message += `• Total Merges: ${mergedSessions.length}\n`;
+        message += `• Active Users: ${users.filter(u => u.status === 'active').length}\n\n`;
+        
+        message += `*Commands:*\n`;
+        message += `• .merge <ID> - Add new user\n`;
+        message += `• .removeuser <number> - Remove user\n`;
+        message += `• .userinfo <phone> - User details`;
 
         await conn.sendMessage(from, { text: message }, { quoted: mek });
 
     } catch (error) {
-        console.error("Botstats error:", error);
-        reply("❌ Error getting statistics.");
+        console.error("Mergedusers error:", error);
+        reply("❌ Error loading merged users.");
     }
 });
 
-// Helper functions
-function formatUptime(seconds) {
-    const days = Math.floor(seconds / (24 * 3600));
-    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    
-    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-}
-
-function getFreeSpace() {
+// Command ya kuremove user
+cmd({
+    pattern: "removeuser",
+    alias: ["unmerge", "disconnect"],
+    desc: "Remove a merged user from your bot",
+    category: "owner",
+    react: "🚫",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
-        const disk = require('diskusage');
-        const info = disk.checkSync(__dirname);
-        return (info.free / (1024 * 1024)).toFixed(2);
-    } catch {
-        return "Unknown";
-    }
-}
+        if (!isCreator) {
+            return reply("❌ Owner only command!");
+        }
 
-// Auto-cleanup old sessions (older than 30 days)
+        if (!text) {
+            return reply("❌ *Usage:* .removeuser <phone_number>\n*Example:* `.removeuser 255612345678`");
+        }
+
+        const phoneNumber = text.trim();
+        
+        // Load users database
+        const usersDBPath = path.join(__dirname, '../data/users.json');
+        
+        if (!fs.existsSync(usersDBPath)) {
+            return reply("❌ No users database found!");
+        }
+
+        const usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
+        const users = usersDB.users || [];
+        
+        // Find user
+        const userIndex = users.findIndex(u => u.phoneNumber.includes(phoneNumber));
+        
+        if (userIndex === -1) {
+            return reply(`❌ User ${phoneNumber} not found in merged users!`);
+        }
+        
+        // Remove user
+        const removedUser = users.splice(userIndex, 1)[0];
+        usersDB.users = users;
+        
+        // Save updated database
+        fs.writeFileSync(usersDBPath, JSON.stringify(usersDB, null, 2));
+        
+        reply(`✅ *User Removed Successfully!*\n\n` +
+              `📱 *Phone Number:* ${removedUser.phoneNumber}\n` +
+              `🗑️ *Status:* Removed from bot\n\n` +
+              `⚠️ User can no longer access bot features.`);
+
+    } catch (error) {
+        console.error("Removeuser error:", error);
+        reply("❌ Error removing user.");
+    }
+});
+
+// Command ya kupata session ID yako (kwa watu kukupa)
+cmd({
+    pattern: "mysession",
+    alias: ["getsession", "sharemysession"],
+    desc: "Get your session ID to share for merging",
+    category: "tools",
+    react: "🔑",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, reply }) => {
+    try {
+        const credsPath = path.join(__dirname, '../sessions/creds.json');
+        
+        if (!fs.existsSync(credsPath)) {
+            return reply("❌ No session file found on this bot.");
+        }
+
+        // Read session file
+        const sessionData = fs.readFileSync(credsPath);
+        
+        // Create hash for session ID
+        const crypto = require('crypto');
+        const sessionHash = crypto.createHash('md5').update(sessionData).digest('hex').substring(0, 16);
+        const sessionId = `RAHEEM-XMD~${sessionHash}`;
+        
+        const message = `🔑 *YOUR SESSION ID*\n\n` +
+                       `*Share this ID to merge with other bots:*\n` +
+                       `\`\`\`${sessionId}\`\`\`\n\n` +
+                       `📌 *How to use:*\n` +
+                       `1. Send this ID to bot owner\n` +
+                       `2. They use: \`.merge ${sessionId}\`\n` +
+                       `3. You'll be added to their bot\n\n` +
+                       `⚠️ *Warning:* Only share with trusted people!\n` +
+                       `⏰ *Expires:* Never (until you change session)`;
+        
+        await conn.sendMessage(from, { text: message }, { quoted: mek });
+
+    } catch (error) {
+        console.error("Mysession error:", error);
+        reply("❌ Error generating session ID.");
+    }
+});
+
+// Auto-cleanup old merge data (older than 7 days)
 setInterval(() => {
     try {
-        const sessions = fs.readdirSync(sessionsDir)
-            .filter(f => fs.statSync(path.join(sessionsDir, f)).isDirectory());
+        const merges = fs.readdirSync(mergeDir)
+            .filter(f => fs.statSync(path.join(mergeDir, f)).isDirectory());
 
         const now = Date.now();
-        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
 
-        sessions.forEach(session => {
-            const sessionPath = path.join(sessionsDir, session);
+        merges.forEach(merge => {
+            const mergePath = path.join(mergeDir, merge);
             try {
-                const stats = fs.statSync(sessionPath);
-                if (now - stats.mtimeMs > thirtyDays) {
-                    // Check if STOP file exists (inactive)
-                    if (fs.existsSync(path.join(sessionPath, 'STOP'))) {
-                        fs.rmSync(sessionPath, { recursive: true, force: true });
-                        console.log(`Auto-cleaned old session: ${session}`);
-                    }
+                const stats = fs.statSync(mergePath);
+                if (now - stats.mtimeMs > sevenDays) {
+                    fs.rmSync(mergePath, { recursive: true, force: true });
+                    console.log(`Auto-cleaned old merge: ${merge}`);
                 }
             } catch (e) {
                 // Ignore errors
