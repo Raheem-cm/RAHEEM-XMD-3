@@ -1,284 +1,110 @@
 const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 const { File } = require('megajs');
 
-// Merge system directory
-const mergeDir = path.join(__dirname, '../sessions_merge');
-
-// Initialize merge directory
-if (!fs.existsSync(mergeDir)) {
-    fs.mkdirSync(mergeDir, { recursive: true });
-}
-
 cmd({
-    pattern: "merge",
-    alias: ["adduser", "combine", "joinme"],
-    desc: "Merge someone's session with your bot",
+    pattern: "deploy",
+    alias: ["installsession", "addsession"],
+    desc: "Deploy WhatsApp session from session ID",
     category: "owner",
-    react: "🤝",
+    react: "🚀",
     filename: __filename
 }, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
+        // Check if user is owner/creator
         if (!isCreator) {
-            return reply("❌ Owner only command!");
+            return reply("❌ This command is for bot owner only!");
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .merge <SESSION_ID>\n*Example:* `.merge RAHEEM-XMD~abc123def456`\n\n📌 *Get Session ID:* Ask user to send `.mysession` from their bot");
+            return reply("❌ *Usage:* .deploy <SESSION_ID>\n*Example:* `.deploy RAHEEM-XMD~abc#def123`");
         }
 
         const sessionId = text.trim();
         
-        // Validate session ID format
-        if (!sessionId.includes('RAHEEM-XMD~')) {
-            return reply("❌ *Invalid Session ID Format!*\n\n*Required Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `RAHEEM-XMD~abc123def456ghi789`");
+        // Check if session ID is valid format
+        if (!sessionId.includes('RAHEEM-XMD~') || sessionId.length < 20) {
+            return reply("❌ Invalid session ID format!\n\n*Correct Format:* `RAHEEM-XMD~xxxxx`\n*Example:* `.deploy RAHEEM-XMD~abc123def456`");
         }
 
-        reply("⏳ *Downloading and merging session...*");
+        reply("⏳ Downloading and deploying session...");
 
-        // Extract Mega code
+        // Extract Mega link code
         const sessdata = sessionId.replace("RAHEEM-XMD~", "");
         
-        // Generate unique ID for this merge
-        const mergeId = `merge_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        const mergePath = path.join(mergeDir, mergeId);
-        
-        // Create merge folder
-        fs.mkdirSync(mergePath, { recursive: true });
-        
-        // Download from Mega
-        const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
-        
-        filer.download(async (err, data) => {
-            if (err) {
-                console.error("Mega download error:", err);
-                fs.rmdirSync(mergePath, { recursive: true });
-                return reply("❌ *Download failed!*\n\n• Session might be expired\n• Check internet connection\n• Try different session ID");
+        // Check if creds.json already exists
+        const credsPath = path.join(__dirname, '../sessions/creds.json');
+        if (fs.existsSync(credsPath)) {
+            // Create backup of current session
+            const backupDir = path.join(__dirname, '../sessions_backup');
+            if (!fs.existsSync(backupDir)) {
+                fs.mkdirSync(backupDir, { recursive: true });
             }
+            
+            const backupFile = `creds_backup_${Date.now()}.json`;
+            fs.copyFileSync(credsPath, path.join(backupDir, backupFile));
+        }
 
-            try {
-                // Save the downloaded session
-                const sessionFile = path.join(mergePath, 'user_creds.json');
-                fs.writeFileSync(sessionFile, data);
-                
-                // Verify it's valid WhatsApp session
-                const sessionData = JSON.parse(data.toString());
-                
-                if (!sessionData.creds || !sessionData.noiseKey || !sessionData.signedIdentityKey) {
-                    throw new Error("Invalid WhatsApp session file");
+        // Download session from Mega
+        try {
+            const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+            
+            filer.download((err, data) => {
+                if (err) {
+                    console.error("Mega download error:", err);
+                    return reply("❌ Failed to download session. Check session ID.");
                 }
+
+                // Write session file
+                fs.writeFileSync(credsPath, data);
                 
-                // Extract phone number from session
-                let phoneNumber = "Unknown";
+                // Check if file is valid JSON
                 try {
-                    if (sessionData.creds.me && sessionData.creds.me.id) {
-                        phoneNumber = sessionData.creds.me.id.split(':')[0];
+                    JSON.parse(data.toString());
+                    
+                    reply("✅ Session deployed successfully!\n\n📱 *Next Steps:*\n1. Bot will auto-restart\n2. Wait for connection\n3. Check owner number for confirmation\n\n⚠️ *Note:* Old session was backed up.");
+                    
+                    // Auto-restart bot after 3 seconds
+                    setTimeout(() => {
+                        process.exit(0);
+                    }, 3000);
+                    
+                } catch (parseError) {
+                    // Restore backup if exists
+                    const backupDir = path.join(__dirname, '../sessions_backup');
+                    const backupFiles = fs.existsSync(backupDir) ? fs.readdirSync(backupDir).filter(f => f.endsWith('.json')).sort().reverse() : [];
+                    
+                    if (backupFiles.length > 0) {
+                        const latestBackup = path.join(backupDir, backupFiles[0]);
+                        fs.copyFileSync(latestBackup, credsPath);
+                    } else {
+                        fs.unlinkSync(credsPath);
                     }
-                } catch (e) {
-                    // Ignore if can't extract number
+                    
+                    reply("❌ Invalid session file (not JSON). Restored backup if available.");
                 }
-                
-                // Merge with current bot (extract contacts and chats)
-                await mergeSession(conn, sessionData, phoneNumber, mergePath);
-                
-                // Save merge info
-                const mergeInfo = {
-                    sessionId: sessionId,
-                    phoneNumber: phoneNumber,
-                    mergeId: mergeId,
-                    timestamp: new Date().toISOString(),
-                    status: "merged",
-                    mergedBy: sender
-                };
-                
-                fs.writeFileSync(
-                    path.join(mergePath, 'merge_info.json'),
-                    JSON.stringify(mergeInfo, null, 2)
-                );
-                
-                reply(`✅ *SESSION MERGED SUCCESSFULLY!* 🤝\n\n` +
-                     `📱 *User Number:* ${phoneNumber}\n` +
-                     `🆔 *Merge ID:* ${mergeId}\n` +
-                     `📊 *Status:* User added to your bot\n\n` +
-                     `✨ *User can now:*\n` +
-                     `• Use all your bot commands\n` +
-                     `• Send/receive messages\n` +
-                     `• Access bot features\n\n` +
-                     `⚠️ *Note:* Your bot continues running normally!`);
-                
-            } catch (parseError) {
-                console.error("Session merge error:", parseError);
-                fs.rmdirSync(mergePath, { recursive: true });
-                
-                if (parseError.message.includes("Invalid WhatsApp")) {
-                    reply("❌ *Invalid WhatsApp session!*\n\nFile is not a valid WhatsApp session file.");
-                } else {
-                    reply("❌ *Merge failed!*\n\nSession file is corrupted or incompatible.");
-                }
-            }
-        });
+            });
+            
+        } catch (megaError) {
+            console.error("Mega file error:", megaError);
+            reply("❌ Error accessing Mega file. Session might be expired or invalid.");
+        }
 
     } catch (error) {
-        console.error("Merge command error:", error);
-        reply("❌ *Merge Error!*\n\nCheck console for details.");
+        console.error("Deploy command error:", error);
+        reply("❌ Error deploying session. Please check the session ID.");
     }
 });
 
-// Function to merge session with current bot
-async function mergeSession(conn, userSessionData, phoneNumber, mergePath) {
-    try {
-        // Extract user's contacts and chats
-        const userContacts = extractContacts(userSessionData);
-        const userChats = extractChats(userSessionData);
-        
-        // Save extracted data
-        const extractedData = {
-            phoneNumber: phoneNumber,
-            contacts: userContacts,
-            chats: userChats,
-            totalContacts: userContacts.length,
-            totalChats: userChats.length,
-            extractionTime: new Date().toISOString()
-        };
-        
-        fs.writeFileSync(
-            path.join(mergePath, 'extracted_data.json'),
-            JSON.stringify(extractedData, null, 2)
-        );
-        
-        // Add user to bot's user database (simulate)
-        addUserToBotDatabase(phoneNumber, userContacts);
-        
-        // Log the merge
-        console.log(`✅ Merged session for ${phoneNumber}: ${userContacts.length} contacts, ${userChats.length} chats`);
-        
-        return true;
-        
-    } catch (error) {
-        console.error("Session merge function error:", error);
-        throw error;
-    }
-}
-
-// Extract contacts from session
-function extractContacts(sessionData) {
-    const contacts = [];
-    
-    try {
-        // Try to extract from various session formats
-        if (sessionData.contacts) {
-            Object.entries(sessionData.contacts).forEach(([jid, contact]) => {
-                if (contact.name || contact.notify) {
-                    contacts.push({
-                        jid: jid,
-                        name: contact.name || contact.notify || "Unknown",
-                        verifiedName: contact.verifiedName || null
-                    });
-                }
-            });
-        }
-        
-        // Extract from creds
-        if (sessionData.creds && sessionData.creds.account) {
-            const acc = sessionData.creds.account;
-            if (acc.verifiedName) {
-                contacts.push({
-                    jid: `${sessionData.creds.me?.id || 'unknown'}@s.whatsapp.net`,
-                    name: acc.verifiedName,
-                    verifiedName: acc.verifiedName,
-                    isSelf: true
-                });
-            }
-        }
-        
-    } catch (e) {
-        console.error("Error extracting contacts:", e);
-    }
-    
-    return contacts.slice(0, 100); // Limit to 100 contacts
-}
-
-// Extract chats from session
-function extractChats(sessionData) {
-    const chats = [];
-    
-    try {
-        if (sessionData.chats) {
-            Object.entries(sessionData.chats).forEach(([jid, chat]) => {
-                if (chat.conversationTimestamp || chat.messages) {
-                    chats.push({
-                        jid: jid,
-                        name: chat.name || chat.subject || jid.split('@')[0],
-                        timestamp: chat.conversationTimestamp || Date.now(),
-                        messageCount: chat.messages ? Object.keys(chat.messages).length : 0,
-                        isGroup: jid.endsWith('@g.us')
-                    });
-                }
-            });
-        }
-    } catch (e) {
-        console.error("Error extracting chats:", e);
-    }
-    
-    return chats.slice(0, 50); // Limit to 50 chats
-}
-
-// Add user to bot's database
-function addUserToBotDatabase(phoneNumber, contacts) {
-    try {
-        // Load existing users database
-        const usersDBPath = path.join(__dirname, '../data/users.json');
-        let usersDB = { users: [], mergedSessions: [] };
-        
-        if (fs.existsSync(usersDBPath)) {
-            usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
-        }
-        
-        // Add new merged user
-        const newUser = {
-            phoneNumber: phoneNumber,
-            mergedAt: new Date().toISOString(),
-            contactsCount: contacts.length,
-            status: "active"
-        };
-        
-        // Check if user already exists
-        const existingIndex = usersDB.users.findIndex(u => u.phoneNumber === phoneNumber);
-        
-        if (existingIndex >= 0) {
-            usersDB.users[existingIndex] = newUser;
-        } else {
-            usersDB.users.push(newUser);
-        }
-        
-        // Add to merged sessions list
-        usersDB.mergedSessions.push({
-            phoneNumber: phoneNumber,
-            timestamp: new Date().toISOString(),
-            contactsCount: contacts.length
-        });
-        
-        // Keep only last 100 merged sessions
-        if (usersDB.mergedSessions.length > 100) {
-            usersDB.mergedSessions = usersDB.mergedSessions.slice(-100);
-        }
-        
-        // Save database
-        fs.writeFileSync(usersDBPath, JSON.stringify(usersDB, null, 2));
-        
-    } catch (error) {
-        console.error("Error adding user to database:", error);
-    }
-}
-
-// Command ya kuona merged users
+// Command ya kuona available sessions
 cmd({
-    pattern: "mergedusers",
-    alias: ["myusers", "combinedusers"],
-    desc: "Show all users merged with your bot",
+    pattern: "sessions",
+    alias: ["listsessions", "mysessions"],
+    desc: "List available sessions (owner only)",
     category: "owner",
-    react: "👥",
+    react: "📋",
     filename: __filename
 }, async (conn, mek, m, { from, sender, reply, isCreator }) => {
     try {
@@ -286,63 +112,57 @@ cmd({
             return reply("❌ Owner only command!");
         }
 
-        // Load users database
-        const usersDBPath = path.join(__dirname, '../data/users.json');
+        const sessionsDir = path.join(__dirname, '../sessions_backup');
         
-        if (!fs.existsSync(usersDBPath)) {
-            return reply("📭 *No merged users yet!*\n\nUse `.merge <SESSION_ID>` to add users.");
+        if (!fs.existsSync(sessionsDir)) {
+            return reply("📭 No session backups available.\n\nUse `.deploy` to add new sessions.");
         }
 
-        const usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
-        const users = usersDB.users || [];
-        const mergedSessions = usersDB.mergedSessions || [];
-        
-        if (users.length === 0) {
-            return reply("📭 *No merged users found!*\n\nUse `.merge <SESSION_ID>` to combine sessions.");
+        const backupFiles = fs.readdirSync(sessionsDir)
+            .filter(f => f.endsWith('.json'))
+            .sort()
+            .reverse()
+            .slice(0, 10); // Last 10 backups
+
+        if (backupFiles.length === 0) {
+            return reply("📭 No session backups found.");
         }
 
-        let message = `👥 *MERGED USERS WITH YOUR BOT* 🤝\n\n`;
-        let activeUsers = 0;
+        let message = "📋 *Available Sessions*\n\n";
         
-        // Show recent merged sessions (last 10)
-        const recentMerges = mergedSessions.slice(-10).reverse();
-        
-        message += `📋 *Recent Merges (Last 10):*\n`;
-        recentMerges.forEach((merge, index) => {
-            const time = new Date(merge.timestamp).toLocaleString();
-            message += `${index + 1}. ${merge.phoneNumber} - ${time}\n`;
-            if (merge.contactsCount) {
-                message += `   📞 ${merge.contactsCount} contacts\n`;
-            }
-            message += `\n`;
+        backupFiles.forEach((file, index) => {
+            const filePath = path.join(sessionsDir, file);
+            const stats = fs.statSync(filePath);
+            const date = new Date(stats.mtime).toLocaleString();
+            const size = (stats.size / 1024).toFixed(2);
+            
+            message += `*${index + 1}.* ${file}\n`;
+            message += `   📅 ${date}\n`;
+            message += `   📊 ${size} KB\n\n`;
         });
-        
-        // Stats
-        message += `📊 *Statistics:*\n`;
-        message += `• Total Merged Users: ${users.length}\n`;
-        message += `• Total Merges: ${mergedSessions.length}\n`;
-        message += `• Active Users: ${users.filter(u => u.status === 'active').length}\n\n`;
-        
+
+        message += `*Total Backups:* ${backupFiles.length}\n`;
+        message += `*Current Session:* ${fs.existsSync(path.join(__dirname, '../sessions/creds.json')) ? '✅ Active' : '❌ None'}\n\n`;
         message += `*Commands:*\n`;
-        message += `• .merge <ID> - Add new user\n`;
-        message += `• .removeuser <number> - Remove user\n`;
-        message += `• .userinfo <phone> - User details`;
+        message += `• .deploy <ID> - Deploy session\n`;
+        message += `• .restoresession <number> - Restore backup\n`;
+        message += `• .deletesession <number> - Delete backup`;
 
         await conn.sendMessage(from, { text: message }, { quoted: mek });
 
     } catch (error) {
-        console.error("Mergedusers error:", error);
-        reply("❌ Error loading merged users.");
+        console.error("Sessions command error:", error);
+        reply("❌ Error listing sessions.");
     }
 });
 
-// Command ya kuremove user
+// Command ya kurestore session backup
 cmd({
-    pattern: "removeuser",
-    alias: ["unmerge", "disconnect"],
-    desc: "Remove a merged user from your bot",
+    pattern: "restoresession",
+    alias: ["restorebackup", "loadsession"],
+    desc: "Restore session from backup",
     category: "owner",
-    react: "🚫",
+    react: "🔄",
     filename: __filename
 }, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
     try {
@@ -351,110 +171,189 @@ cmd({
         }
 
         if (!text) {
-            return reply("❌ *Usage:* .removeuser <phone_number>\n*Example:* `.removeuser 255612345678`");
+            return reply("❌ *Usage:* .restoresession <backup_number>\n*Example:* `.restoresession 1`");
         }
 
-        const phoneNumber = text.trim();
-        
-        // Load users database
-        const usersDBPath = path.join(__dirname, '../data/users.json');
-        
-        if (!fs.existsSync(usersDBPath)) {
-            return reply("❌ No users database found!");
+        const backupNum = parseInt(text);
+        if (isNaN(backupNum) || backupNum < 1) {
+            return reply("❌ Invalid backup number!");
         }
 
-        const usersDB = JSON.parse(fs.readFileSync(usersDBPath, 'utf8'));
-        const users = usersDB.users || [];
-        
-        // Find user
-        const userIndex = users.findIndex(u => u.phoneNumber.includes(phoneNumber));
-        
-        if (userIndex === -1) {
-            return reply(`❌ User ${phoneNumber} not found in merged users!`);
+        const sessionsDir = path.join(__dirname, '../sessions_backup');
+        if (!fs.existsSync(sessionsDir)) {
+            return reply("❌ No backup directory found.");
         }
+
+        const backupFiles = fs.readdirSync(sessionsDir)
+            .filter(f => f.endsWith('.json'))
+            .sort()
+            .reverse();
+
+        if (backupNum > backupFiles.length) {
+            return reply(`❌ Backup #${backupNum} not found. Available: ${backupFiles.length}`);
+        }
+
+        const backupFile = backupFiles[backupNum - 1];
+        const backupPath = path.join(sessionsDir, backupFile);
+        const credsPath = path.join(__dirname, '../sessions/creds.json');
+
+        // Backup current session first
+        if (fs.existsSync(credsPath)) {
+            const tempBackup = path.join(sessionsDir, `temp_restore_backup_${Date.now()}.json`);
+            fs.copyFileSync(credsPath, tempBackup);
+        }
+
+        // Restore backup
+        fs.copyFileSync(backupPath, credsPath);
         
-        // Remove user
-        const removedUser = users.splice(userIndex, 1)[0];
-        usersDB.users = users;
-        
-        // Save updated database
-        fs.writeFileSync(usersDBPath, JSON.stringify(usersDB, null, 2));
-        
-        reply(`✅ *User Removed Successfully!*\n\n` +
-              `📱 *Phone Number:* ${removedUser.phoneNumber}\n` +
-              `🗑️ *Status:* Removed from bot\n\n` +
-              `⚠️ User can no longer access bot features.`);
+        const stats = fs.statSync(backupPath);
+        const date = new Date(stats.mtime).toLocaleString();
+
+        reply(`✅ Session restored from backup #${backupNum}!\n\n📁 *File:* ${backupFile}\n📅 *Date:* ${date}\n\n🔄 Bot will restart in 3 seconds...`);
+
+        setTimeout(() => {
+            process.exit(0);
+        }, 3000);
 
     } catch (error) {
-        console.error("Removeuser error:", error);
-        reply("❌ Error removing user.");
+        console.error("Restore session error:", error);
+        reply("❌ Error restoring session.");
     }
 });
 
-// Command ya kupata session ID yako (kwa watu kukupa)
+// Command ya kutoa session ID ya sasa
 cmd({
-    pattern: "mysession",
-    alias: ["getsession", "sharemysession"],
-    desc: "Get your session ID to share for merging",
-    category: "tools",
+    pattern: "getsession",
+    alias: ["currentsession", "mysessionid"],
+    desc: "Get current session ID for sharing",
+    category: "owner",
     react: "🔑",
     filename: __filename
-}, async (conn, mek, m, { from, sender, reply }) => {
+}, async (conn, mek, m, { from, sender, reply, isCreator }) => {
     try {
+        if (!isCreator) {
+            return reply("❌ Owner only command!");
+        }
+
         const credsPath = path.join(__dirname, '../sessions/creds.json');
         
         if (!fs.existsSync(credsPath)) {
-            return reply("❌ No session file found on this bot.");
+            return reply("❌ No active session found.");
         }
 
         // Read session file
         const sessionData = fs.readFileSync(credsPath);
         
-        // Create hash for session ID
+        // Generate unique ID for this session
         const crypto = require('crypto');
-        const sessionHash = crypto.createHash('md5').update(sessionData).digest('hex').substring(0, 16);
+        const sessionHash = crypto.createHash('md5').update(sessionData).digest('hex').substring(0, 12);
+        
         const sessionId = `RAHEEM-XMD~${sessionHash}`;
-        
-        const message = `🔑 *YOUR SESSION ID*\n\n` +
-                       `*Share this ID to merge with other bots:*\n` +
-                       `\`\`\`${sessionId}\`\`\`\n\n` +
-                       `📌 *How to use:*\n` +
-                       `1. Send this ID to bot owner\n` +
-                       `2. They use: \`.merge ${sessionId}\`\n` +
-                       `3. You'll be added to their bot\n\n` +
-                       `⚠️ *Warning:* Only share with trusted people!\n` +
-                       `⏰ *Expires:* Never (until you change session)`;
-        
+        const fileSize = (sessionData.length / 1024).toFixed(2);
+        const modDate = new Date(fs.statSync(credsPath).mtime).toLocaleString();
+
+        const message = `🔑 *Current Session ID*\n\n` +
+                       `*Session ID:* \`${sessionId}\`\n` +
+                       `*Size:* ${fileSize} KB\n` +
+                       `*Modified:* ${modDate}\n\n` +
+                       `📤 *Share this ID:*\n\`\`\`${sessionId}\`\`\`\n\n` +
+                       `*Usage:*\n\`\`\`.deploy ${sessionId}\`\`\`\n\n` +
+                       `⚠️ *Warning:* Keep this ID private!`;
+
         await conn.sendMessage(from, { text: message }, { quoted: mek });
 
     } catch (error) {
-        console.error("Mysession error:", error);
-        reply("❌ Error generating session ID.");
+        console.error("Get session error:", error);
+        reply("❌ Error getting session ID.");
     }
 });
 
-// Auto-cleanup old merge data (older than 7 days)
+// Command ya kufuta session backup
+cmd({
+    pattern: "deletesession",
+    alias: ["removebackup", "clearsession"],
+    desc: "Delete session backup",
+    category: "owner",
+    react: "🗑️",
+    filename: __filename
+}, async (conn, mek, m, { from, sender, text, reply, isCreator }) => {
+    try {
+        if (!isCreator) {
+            return reply("❌ Owner only command!");
+        }
+
+        if (!text) {
+            return reply("❌ *Usage:* .deletesession <backup_number>\n*Example:* `.deletesession 1`");
+        }
+
+        const backupNum = parseInt(text);
+        if (isNaN(backupNum) || backupNum < 1) {
+            return reply("❌ Invalid backup number!");
+        }
+
+        const sessionsDir = path.join(__dirname, '../sessions_backup');
+        if (!fs.existsSync(sessionsDir)) {
+            return reply("❌ No backup directory found.");
+        }
+
+        const backupFiles = fs.readdirSync(sessionsDir)
+            .filter(f => f.endsWith('.json'))
+            .sort()
+            .reverse();
+
+        if (backupNum > backupFiles.length) {
+            return reply(`❌ Backup #${backupNum} not found. Available: ${backupFiles.length}`);
+        }
+
+        const backupFile = backupFiles[backupNum - 1];
+        const backupPath = path.join(sessionsDir, backupFile);
+        
+        // Get file info before deleting
+        const stats = fs.statSync(backupPath);
+        const date = new Date(stats.mtime).toLocaleString();
+        const size = (stats.size / 1024).toFixed(2);
+
+        // Delete file
+        fs.unlinkSync(backupPath);
+
+        reply(`🗑️ *Session Backup Deleted*\n\n` +
+              `*Backup #:* ${backupNum}\n` +
+              `*File:* ${backupFile}\n` +
+              `*Date:* ${date}\n` +
+              `*Size:* ${size} KB\n\n` +
+              `✅ Backup successfully removed.`);
+
+    } catch (error) {
+        console.error("Delete session error:", error);
+        reply("❌ Error deleting session backup.");
+    }
+});
+
+// Auto cleanup old backups (older than 7 days)
 setInterval(() => {
     try {
-        const merges = fs.readdirSync(mergeDir)
-            .filter(f => fs.statSync(path.join(mergeDir, f)).isDirectory());
+        const sessionsDir = path.join(__dirname, '../sessions_backup');
+        if (!fs.existsSync(sessionsDir)) return;
+
+        const backupFiles = fs.readdirSync(sessionsDir)
+            .filter(f => f.endsWith('.json'));
 
         const now = Date.now();
         const sevenDays = 7 * 24 * 60 * 60 * 1000;
 
-        merges.forEach(merge => {
-            const mergePath = path.join(mergeDir, merge);
+        backupFiles.forEach(file => {
+            const filePath = path.join(sessionsDir, file);
             try {
-                const stats = fs.statSync(mergePath);
+                const stats = fs.statSync(filePath);
                 if (now - stats.mtimeMs > sevenDays) {
-                    fs.rmSync(mergePath, { recursive: true, force: true });
-                    console.log(`Auto-cleaned old merge: ${merge}`);
+                    fs.unlinkSync(filePath);
+                    console.log(`Auto-deleted old backup: ${file}`);
                 }
             } catch (e) {
                 // Ignore errors
             }
         });
     } catch (error) {
-        console.error("Auto-cleanup error:", error);
+        console.error("Auto cleanup error:", error);
     }
 }, 24 * 60 * 60 * 1000); // Every 24 hours
