@@ -1,22 +1,41 @@
- const { cmd } = require('../command');
+const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
 // Store settings
 const SETTINGS_FILE = path.join(__dirname, '../setbot_settings.json');
 
-// Default settings
+// Default settings - ZIJA KALI ZAIDI!
 const defaultSettings = {
-    enabled: false, // false = anyone can use, true = only owner
-    warningMode: true, // Send scary warnings
-    autoBlock: false, // Automatically block violators
-    warningMessage: `⚠️ *UNAUTHORIZED ACCESS DETECTED!* ⚠️\n\n` +
-                   `👁️ *YOUR ACTIVITY IS BEING MONITORED*\n` +
-                   `📞 *YOUR NUMBER HAS BEEN LOGGED*\n` +
-                   `🚨 *ADMIN HAS BEEN NOTIFIED*\n\n` +
-                   `❌ *STOP USING THIS BOT IMMEDIATELY!*`,
+    enabled: false,
+    warningMode: true,
+    autoBlock: true, // TRUE - Automatically block!
+    warningCount: {},
     blockedUsers: [],
-    warningCount: {}
+    scareLevel: 'high', // low, medium, high, extreme
+    
+    // MESSAGES ZA KUTISHA ZIJA!
+    warningMessages: [
+        `⚠️ *UNAUTHORIZED ACCESS DETECTED!* ⚠️\n\n👁️ *YOUR ACTIVITY IS BEING MONITORED*\n📞 *YOUR NUMBER HAS BEEN LOGGED*\n🚨 *ADMIN HAS BEEN NOTIFIED*\n\n❌ *STOP USING THIS BOT IMMEDIATELY!*`,
+        
+        `🚨 *SECURITY ALERT!* 🚨\n\n👮 *POLICE NOTIFICATION SENT*\n📱 *YOUR DEVICE IS BEING TRACKED*\n💀 *NEXT ATTEMPT WILL GET YOU BLOCKED*\n\n⚠️ *FINAL WARNING!*`,
+        
+        `💀 *YOU HAVE BEEN WARNED!* 💀\n\n🔫 *TERMINATION SEQUENCE INITIATED*\n⚰️ *ACCESS DENIED PERMANENTLY*\n👻 *YOUR DIGITAL FOOTPRINT RECORDED*\n\n⛔ *DO NOT PROCEED!*`
+    ],
+    
+    // STICKERS ZA KUOGOPESHA
+    scaryStickers: [
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp', // Bunduki
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp', // Fuvu
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/2.webp',
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/1.webp',
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/18.webp', // Cop na bunduki
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Anxious/1.webp', // Anxious
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Anxious/2.webp',
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Ghost/1.webp', // Ghost
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Ghost/2.webp'
+    ]
 };
 
 // Load settings
@@ -45,132 +64,178 @@ function saveSettings(settings) {
 // Initialize settings
 let settings = loadSettings();
 
-// Middleware to check access
-function checkAccess(conn, mek, m) {
-    const config = require('../config');
-    
-    // If setbot is off, everyone can access
-    if (!settings.enabled) {
-        return { allowed: true, reason: 'setbot off' };
-    }
-    
-    const sender = mek.sender || mek.key.participant;
-    const senderNumber = sender.split('@')[0];
-    
-    // Owner numbers from config
-    const ownerNumbers = [
-        config.OWNER_NUMBER,
-        config.DEV,
-        '255763111390',
-        '255610209120',
-        '256762516606'
-    ].filter(n => n).map(n => n.replace(/[^0-9]/g, ''));
-    
-    // Check if sender is owner
-    const isOwner = ownerNumbers.some(num => 
-        senderNumber.includes(num) || sender.includes(num)
-    );
-    
-    if (isOwner) {
-        return { allowed: true, reason: 'owner' };
-    }
-    
-    // Check if user is blocked
-    if (settings.blockedUsers.includes(sender)) {
-        return { allowed: false, reason: 'blocked' };
-    }
-    
-    // Not owner, setbot is ON
-    return { allowed: false, reason: 'not owner' };
-}
-
-// Send warning to unauthorized user
-async function sendWarning(conn, mek, m) {
-    const sender = mek.sender || mek.key.participant;
-    
-    // Increment warning count
-    settings.warningCount[sender] = (settings.warningCount[sender] || 0) + 1;
-    saveSettings(settings);
-    
-    // Prepare scary message
-    let warningMsg = settings.warningMessage;
-    
-    // Add count warning
-    warningMsg += `\n\n⚠️ *WARNING ${settings.warningCount[sender]}/3*\n`;
-    if (settings.warningCount[sender] >= 3) {
-        warningMsg += `🚨 *NEXT VIOLATION WILL GET YOU BLOCKED!*`;
-    }
-    
-    // Send with scary formatting
-    await conn.sendMessage(sender, {
-        text: warningMsg,
-        contextInfo: {
-            mentionedJid: [sender],
-            forwardingScore: 999,
-            isForwarded: true
-        }
-    });
-    
-    // Send creepy stickers/effects (optional)
+// MIDDLEWARE KALI ZAIDI!
+module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, reply }) => {
     try {
-        // Send scary sticker
-        const scaryStickers = [
-            'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Anxious/1.webp',
-            'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Anxious/2.webp',
-            'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Anxious/3.webp'
-        ];
+        // Skip if not a command or setbot is off
+        if (!isCmd || !settings.enabled) return false;
         
-        const randomSticker = scaryStickers[Math.floor(Math.random() * scaryStickers.length)];
-        await conn.sendMessage(sender, {
-            sticker: { url: randomSticker }
-        });
-    } catch (e) {
-        // Ignore sticker errors
-    }
-    
-    // Auto-block after 3 warnings
-    if (settings.autoBlock && settings.warningCount[sender] >= 3) {
+        const config = require('../config');
+        
+        // Check if sender is owner
+        const ownerNumbers = [
+            config.OWNER_NUMBER,
+            config.DEV,
+            '255763111390',
+            '255611109830',
+            '256762516606'
+        ].filter(n => n);
+        
+        const senderNumber = sender.split('@')[0];
+        const isOwner = ownerNumbers.some(num => 
+            senderNumber.includes(num.replace(/[^0-9]/g, ''))
+        );
+        
+        // Allow owner
+        if (isOwner) return false;
+        
+        // Check if user is already blocked
+        if (settings.blockedUsers.includes(sender)) {
+            // Send blocked message
+            await conn.sendMessage(sender, {
+                text: `🚫 *YOU ARE PERMANENTLY BLOCKED!*\n\n` +
+                      `⛔ *ACCESS DENIED FOREVER*\n` +
+                      `💀 *DO NOT TRY AGAIN*\n` +
+                      `👮 *ADMIN NOTIFIED OF THIS ATTEMPT*`
+            });
+            return true; // Block command
+        }
+        
+        // ========== TUMA STICKER YA BUNDUKI KABLA YA WARNING! ==========
         try {
-            await conn.updateBlockStatus(sender, 'block');
-            settings.blockedUsers.push(sender);
-            saveSettings(settings);
+            // Chagua random scary sticker
+            const stickerIndex = Math.floor(Math.random() * settings.scaryStickers.length);
+            const stickerUrl = settings.scaryStickers[stickerIndex];
             
-            // Notify owner
+            await conn.sendMessage(sender, {
+                sticker: { url: stickerUrl }
+            });
+            
+            // Delay kidogo kwa effect
+            await new Promise(resolve => setTimeout(resolve, 800));
+        } catch (stickerError) {
+            console.log('Sticker send failed:', stickerError.message);
+        }
+        
+        // ========== INCREMENT WARNING COUNT ==========
+        settings.warningCount[sender] = (settings.warningCount[sender] || 0) + 1;
+        const warningNumber = settings.warningCount[sender];
+        
+        // ========== TUMA WARNING MESSAGE ==========
+        let warningMsg = '';
+        
+        if (warningNumber === 1) {
+            // First warning - THREATENING
+            warningMsg = `🔫 *BANG! BANG!* 🔫\n\n` +
+                        `⚠️ *FIRST WARNING!*\n` +
+                        `📱 *Number:* ${senderNumber}\n` +
+                        `👁️ *You are being watched*\n` +
+                        `🚨 *Next attempt will have consequences*\n\n` +
+                        `❌ *STOP USING THIS BOT NOW!*`;
+        } 
+        else if (warningNumber === 2) {
+            // Second warning - MORE THREATENING
+            warningMsg = `💀 *SECOND AND FINAL WARNING!* 💀\n\n` +
+                        `📱 *Number:* ${senderNumber}\n` +
+                        `⚠️ *Warnings:* 2/2\n` +
+                        `🚫 *Next violation:* PERMANENT BLOCK\n` +
+                        `👮 *Admin has been notified*\n\n` +
+                        `⛔ *THIS IS YOUR LAST CHANCE!*`;
+        }
+        else if (warningNumber >= 3) {
+            // Third warning - AUTO BLOCK!
+            warningMsg = `🚨 *TERMINATING ACCESS!* 🚨\n\n` +
+                        `📱 *Number:* ${senderNumber}\n` +
+                        `⛔ *Violations:* ${warningNumber}\n` +
+                        `🔒 *Action:* PERMANENTLY BLOCKED\n` +
+                        `💀 *You can no longer use this bot*\n\n` +
+                        `⚠️ *DO NOT ATTEMPT TO CONTACT AGAIN!*`;
+            
+            // AUTO-BLOCK THE USER
+            try {
+                await conn.updateBlockStatus(sender, 'block');
+                settings.blockedUsers.push(sender);
+                
+                // Send scary blocked message
+                await conn.sendMessage(sender, {
+                    text: `⛔ *YOU HAVE BEEN TERMINATED!* ⛔\n\n` +
+                          `🔫 *ACCESS PERMANENTLY REVOKED*\n` +
+                          `💀 *YOUR NUMBER IS NOW BLACKLISTED*\n` +
+                          `🚫 *ALL FUTURE ATTEMPTS WILL FAIL*\n\n` +
+                          `👮 *GOODBYE FOREVER!*`
+                });
+                
+                // Send gun sticker again
+                try {
+                    await conn.sendMessage(sender, {
+                        sticker: { url: 'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp' }
+                    });
+                } catch (e) {}
+                
+            } catch (blockError) {
+                console.error('Auto-block failed:', blockError);
+            }
+        }
+        
+        // Send the warning message
+        await conn.sendMessage(sender, { text: warningMsg });
+        
+        // ========== NOTIFY OWNER ==========
+        try {
             const owner = config.OWNER_NUMBER ? 
                 config.OWNER_NUMBER.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : 
                 conn.user.id;
             
-            await conn.sendMessage(owner, {
-                text: `🚨 *AUTO-BLOCK ACTIVATED*\n\n` +
-                      `User: ${sender}\n` +
-                      `Reason: 3 unauthorized access attempts\n` +
-                      `Action: Automatically blocked\n` +
-                      `Time: ${new Date().toLocaleString()}`
-            });
-        } catch (e) {
-            console.error('Auto-block failed:', e);
+            if (owner !== sender) {
+                const notifyMsg = `🚨 *UNAUTHORIZED ACCESS ALERT!*\n\n` +
+                                `👤 *Intruder:* ${sender}\n` +
+                                `📝 *Command:* ${body.substring(0, 50)}...\n` +
+                                `⚠️ *Warnings:* ${warningNumber}\n` +
+                                `🕒 *Time:* ${new Date().toLocaleString()}\n\n`;
+                
+                let action = '';
+                if (warningNumber >= 3) {
+                    action = `🔒 *Action:* AUTO-BLOCKED USER`;
+                } else {
+                    action = `⚠️ *Action:* Warning ${warningNumber}/2 sent`;
+                }
+                
+                await conn.sendMessage(owner, {
+                    text: notifyMsg + action
+                });
+            }
+        } catch (notifyError) {
+            console.error('Owner notification failed:', notifyError);
         }
+        
+        // Save settings
+        saveSettings(settings);
+        
+        // BLOCK THE COMMAND
+        return true;
+        
+    } catch (error) {
+        console.error('Setbot middleware error:', error);
+        return false;
     }
-    
-    // Log the violation
-    console.log(`UNAUTHORIZED ACCESS: ${sender} - Warning ${settings.warningCount[sender]}`);
-}
+};
 
-// Main setbot command
+// ========== SETBOT COMMAND ==========
+
 cmd({
     pattern: "setbot",
-    alias: ["botaccess", "access", "lockbot"],
-    desc: "Control who can use the bot - ON/OFF with scary warnings",
+    alias: ["botaccess", "lockbot", "security"],
+    desc: "Control bot access with extreme security",
     category: "owner",
     filename: __filename,
     use: '<on/off/status/settings/block/unblock/list>',
     fromMe: true,
-    react: "🔐"
+    react: "🔫"
 }, async (conn, mek, m, { from, sender, reply, args, text, prefix }) => {
     try {
         const config = require('../config');
         
-        // Owner check for command
+        // Owner check
         const ownerNumbers = [
             config.OWNER_NUMBER,
             config.DEV,
@@ -184,36 +249,57 @@ cmd({
         );
         
         if (!isOwner) {
-            return reply('❌ *Owner Command Only!*');
+            // Non-owner trying to use setbot? Send them scary message!
+            await conn.sendMessage(sender, {
+                text: `🔫 *ACCESS DENIED!* 🔫\n\n` +
+                      `⚠️ *This command is for owner only!*\n` +
+                      `👁️ *Your attempt has been logged*\n` +
+                      `🚨 *Admin notified of this violation*\n\n` +
+                      `❌ *STOP TRYING TO ACCESS OWNER COMMANDS!*`
+            });
+            
+            // Send scary sticker
+            try {
+                await conn.sendMessage(sender, {
+                    sticker: { url: 'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp' }
+                });
+            } catch (e) {}
+            
+            return;
         }
 
+        // HELP MENU
         if (!text) {
             const helpMsg = `
-*🔐 SETBOT ACCESS CONTROL*
+*🔫 SETBOT EXTREME SECURITY*
 
-*Control who can use your bot with scary warnings!*
+*Control who can use your bot with military-grade security!*
 
 *📌 COMMANDS:*
-• \`${prefix}setbot on\` - Lock bot (only owner can use)
-• \`${prefix}setbot off\` - Unlock bot (everyone can use)
-• \`${prefix}setbot status\` - Check current status
-• \`${prefix}setbot settings\` - Configure warning system
-• \`${prefix}setbot block @user\` - Block specific user
+• \`${prefix}setbot on\` - Lock bot (only owner)
+• \`${prefix}setbot off\` - Unlock bot (everyone)
+• \`${prefix}setbot status\` - Check security status
+• \`${prefix}setbot block @user\` - Manually block user
 • \`${prefix}setbot unblock @user\` - Unblock user
 • \`${prefix}setbot list\` - List blocked users
-• \`${prefix}setbot warnings @user\` - Check user warnings
 • \`${prefix}setbot reset @user\` - Reset user warnings
+• \`${prefix}setbot test\` - Test security system
 
-*📌 EXAMPLES:*
+*⚡ FEATURES:*
+✅ Auto-block after 2 warnings
+✅ Scary gun stickers
+✅ Owner notifications
+✅ Permanent blacklisting
+✅ Military-grade security
+
+*📌 EXAMPLE:*
 ${prefix}setbot on
-${prefix}setbot block @user
-${prefix}setbot settings warn:false block:true
+${prefix}setbot block 255763111390
 
-*⚡ CURRENT STATUS:*
-• Lock: ${settings.enabled ? '🔒 ON' : '🔓 OFF'}
-• Warnings: ${settings.warningMode ? '✅ Enabled' : '❌ Disabled'}
-• Auto-block: ${settings.autoBlock ? '✅ Enabled' : '❌ Disabled'}
-• Blocked users: ${settings.blockedUsers.length}
+*🔫 CURRENT STATUS:*
+• Security: ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}
+• Auto-block: ${settings.autoBlock ? '✅ ACTIVE' : '❌ INACTIVE'}
+• Blocked: ${settings.blockedUsers.length} user(s)
 `;
             return reply(helpMsg);
         }
@@ -221,135 +307,84 @@ ${prefix}setbot settings warn:false block:true
         const [command, ...params] = text.trim().split(' ');
         const paramText = params.join(' ');
 
-        // ====== ON/OFF ======
-        if (command === 'on' || command === 'enable' || command === 'lock') {
+        // ====== ON ======
+        if (command === 'on') {
             settings.enabled = true;
             saveSettings(settings);
             
-            await reply(`✅ *BOT LOCKED!*\n\n` +
-                       `🔒 *Status:* ON\n` +
+            await reply(`🔫 *SECURITY SYSTEM ARMED!*\n\n` +
+                       `⚠️ *Status:* LOCKED & LOADED\n` +
                        `👑 *Only owner can use bot*\n` +
-                       `⚠️ *Others will receive scary warnings*\n` +
-                       `🚨 *Violators may be auto-blocked*\n\n` +
-                       `Use \`${prefix}setbot off\` to unlock.`);
+                       `💀 *Intruders will face consequences*\n` +
+                       `🚨 *Auto-block after 2 violations*\n\n` +
+                       `*WARNING:* Intruders will receive:\n` +
+                       `1. Gun sticker 🔫\n` +
+                       `2. Scary warning\n` +
+                       `3. Auto-block on 3rd attempt`);
             return;
         }
         
-        if (command === 'off' || command === 'disable' || command === 'unlock') {
+        // ====== OFF ======
+        if (command === 'off') {
             settings.enabled = false;
             saveSettings(settings);
             
-            await reply(`✅ *BOT UNLOCKED!*\n\n` +
-                       `🔓 *Status:* OFF\n` +
+            await reply(`🔓 *SECURITY SYSTEM DISARMED!*\n\n` +
+                       `🕊️ *Status:* PEACEFUL MODE\n` +
                        `🌍 *Everyone can use bot*\n` +
-                       `🎉 *No restrictions applied*\n\n` +
-                       `Use \`${prefix}setbot on\` to lock.`);
+                       `🎉 *No restrictions*\n` +
+                       `🤝 *All users welcome*\n\n` +
+                       `Use \`${prefix}setbot on\` to re-arm.`);
             return;
         }
         
         // ====== STATUS ======
-        if (command === 'status' || command === 'info') {
-            const statusMsg = `*🔐 SETBOT STATUS*\n\n` +
-                            `⚡ *Lock Status:* ${settings.enabled ? '🔒 LOCKED' : '🔓 UNLOCKED'}\n` +
-                            `⚠️ *Warning System:* ${settings.warningMode ? '✅ ON' : '❌ OFF'}\n` +
-                            `🚨 *Auto-block:* ${settings.autoBlock ? '✅ ON' : '❌ OFF'}\n` +
-                            `📋 *Blocked Users:* ${settings.blockedUsers.length}\n` +
-                            `📊 *Total Warnings:* ${Object.keys(settings.warningCount).length}\n\n`;
+        if (command === 'status') {
+            const blockedCount = settings.blockedUsers.length;
+            const warningCount = Object.keys(settings.warningCount).length;
             
-            let activeWarnings = Object.entries(settings.warningCount)
-                .filter(([_, count]) => count > 0);
+            let statusMsg = `*🔫 SETBOT SECURITY STATUS*\n\n`;
+            statusMsg += `⚡ *Security:* ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}\n`;
+            statusMsg += `🚨 *Auto-block:* ${settings.autoBlock ? '✅ ACTIVE' : '❌ INACTIVE'}\n`;
+            statusMsg += `⛔ *Blocked Users:* ${blockedCount}\n`;
+            statusMsg += `⚠️ *Active Warnings:* ${warningCount}\n\n`;
             
-            if (activeWarnings.length > 0) {
-                statusMsg += `*⚠️ ACTIVE WARNINGS:*\n`;
-                activeWarnings.forEach(([user, count]) => {
-                    const num = user.split('@')[0];
+            if (blockedCount > 0) {
+                statusMsg += `*🚫 BLACKLISTED USERS:*\n`;
+                settings.blockedUsers.slice(0, 5).forEach((jid, i) => {
+                    const num = jid.split('@')[0];
+                    statusMsg += `${i+1}. ${num}\n`;
+                });
+                if (blockedCount > 5) statusMsg += `... and ${blockedCount - 5} more\n`;
+            }
+            
+            // Show top violators
+            const violators = Object.entries(settings.warningCount)
+                .filter(([_, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+            
+            if (violators.length > 0) {
+                statusMsg += `\n*⚠️ TOP VIOLATORS:*\n`;
+                violators.forEach(([jid, count]) => {
+                    const num = jid.split('@')[0];
                     statusMsg += `• ${num}: ${count} warning(s)\n`;
                 });
             }
             
-            statusMsg += `\n*Quick commands:*\n` +
-                        `${prefix}setbot on/off\n` +
-                        `${prefix}setbot settings\n` +
-                        `${prefix}setbot list`;
+            statusMsg += `\n*Quick Commands:*\n`;
+            statusMsg += `${prefix}setbot list - View all blocked\n`;
+            statusMsg += `${prefix}setbot on/off - Toggle security\n`;
+            statusMsg += `${prefix}setbot test - Test system`;
             
             await reply(statusMsg);
-            return;
-        }
-        
-        // ====== SETTINGS ======
-        if (command === 'settings' || command === 'config') {
-            if (!paramText) {
-                const settingsMsg = `*⚙️ SETBOT SETTINGS*\n\n` +
-                                  `*Current Configuration:*\n` +
-                                  `1. Warning Messages: ${settings.warningMode ? '✅ ON' : '❌ OFF'}\n` +
-                                  `2. Auto-block: ${settings.autoBlock ? '✅ ON' : '❌ OFF'}\n` +
-                                  `3. Blocked Users: ${settings.blockedUsers.length}\n\n` +
-                                  `*Change Settings:*\n` +
-                                  `\`${prefix}setbot settings warn:on\` - Enable warnings\n` +
-                                  `\`${prefix}setbot settings warn:off\` - Disable warnings\n` +
-                                  `\`${prefix}setbot settings block:on\` - Enable auto-block\n` +
-                                  `\`${prefix}setbot settings block:off\` - Disable auto-block\n` +
-                                  `\`${prefix}setbot settings reset\` - Reset all warnings\n\n` +
-                                  `*Warning Message:*\n` +
-                                  `${settings.warningMessage.substring(0, 100)}...`;
-                
-                await reply(settingsMsg);
-                return;
-            }
-            
-            // Parse settings
-            const updates = paramText.split(' ');
-            let changes = [];
-            
-            for (const update of updates) {
-                const [key, value] = update.split(':');
-                
-                switch(key.toLowerCase()) {
-                    case 'warn':
-                    case 'warning':
-                        settings.warningMode = value === 'on' || value === 'true' || value === 'yes';
-                        changes.push(`Warnings: ${settings.warningMode ? 'ON' : 'OFF'}`);
-                        break;
-                        
-                    case 'block':
-                    case 'autoblock':
-                        settings.autoBlock = value === 'on' || value === 'true' || value === 'yes';
-                        changes.push(`Auto-block: ${settings.autoBlock ? 'ON' : 'OFF'}`);
-                        break;
-                        
-                    case 'reset':
-                        settings.warningCount = {};
-                        settings.blockedUsers = [];
-                        changes.push('All warnings & blocks reset');
-                        break;
-                        
-                    case 'message':
-                        if (value) {
-                            settings.warningMessage = decodeURIComponent(value);
-                            changes.push('Warning message updated');
-                        }
-                        break;
-                }
-            }
-            
-            saveSettings(settings);
-            
-            if (changes.length > 0) {
-                await reply(`✅ *SETTINGS UPDATED*\n\n` +
-                           `*Changes made:*\n` +
-                           changes.map(c => `• ${c}`).join('\n') + `\n\n` +
-                           `Use \`${prefix}setbot status\` to verify.`);
-            } else {
-                await reply(`❌ *No valid settings provided.*\n\n` +
-                           `Use: ${prefix}setbot settings warn:on block:off`);
-            }
             return;
         }
         
         // ====== BLOCK USER ======
         if (command === 'block') {
             if (!paramText) {
-                return reply(`*Usage:* ${prefix}setbot block @user\n*Example:* ${prefix}setbot block 255763111390`);
+                return reply(`*Usage:* ${prefix}setbot block <number>\n*Example:* ${prefix}setbot block 255763111390`);
             }
             
             let targetJid = paramText.replace(/[^0-9@]/g, '');
@@ -362,22 +397,36 @@ ${prefix}setbot settings warn:false block:true
                 settings.blockedUsers.push(targetJid);
                 saveSettings(settings);
                 
-                // Also block in WhatsApp
+                // Block in WhatsApp
                 try {
                     await conn.updateBlockStatus(targetJid, 'block');
-                } catch (e) {
-                    console.error('Block failed:', e);
-                }
+                } catch (e) {}
                 
-                await reply(`✅ *USER BLOCKED*\n\n` +
-                           `👤 *User:* ${targetJid.split('@')[0]}\n` +
-                           `🚫 *Status:* Added to block list\n` +
-                           `🔒 *Cannot use bot anymore*\n` +
-                           `📞 *Also blocked on WhatsApp*`);
+                // Send scary message to blocked user
+                try {
+                    await conn.sendMessage(targetJid, {
+                        text: `⛔ *YOU HAVE BEEN TERMINATED!* ⛔\n\n` +
+                              `🔫 *ACCESS PERMANENTLY REVOKED*\n` +
+                              `💀 *ADMIN HAS BLACKLISTED YOU*\n` +
+                              `🚫 *ALL FUTURE ATTEMPTS WILL FAIL*\n\n` +
+                              `👮 *GOODBYE FOREVER!*`
+                    });
+                    
+                    // Send gun sticker
+                    await conn.sendMessage(targetJid, {
+                        sticker: { url: 'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp' }
+                    });
+                } catch (e) {}
+                
+                await reply(`✅ *USER TERMINATED!*\n\n` +
+                           `🔫 *Target:* ${targetJid.split('@')[0]}\n` +
+                           `💀 *Status:* PERMANENTLY BLOCKED\n` +
+                           `🚫 *Cannot use bot anymore*\n` +
+                           `👮 *Also blocked on WhatsApp*`);
             } else {
-                await reply(`ℹ️ *User already blocked*\n\n` +
+                await reply(`ℹ️ *User already terminated*\n\n` +
                            `User: ${targetJid.split('@')[0]}\n` +
-                           `Status: Already in block list`);
+                           `Status: Already in blacklist`);
             }
             return;
         }
@@ -385,7 +434,7 @@ ${prefix}setbot settings warn:false block:true
         // ====== UNBLOCK USER ======
         if (command === 'unblock') {
             if (!paramText) {
-                return reply(`*Usage:* ${prefix}setbot unblock @user\n*Example:* ${prefix}setbot unblock 255763111390`);
+                return reply(`*Usage:* ${prefix}setbot unblock <number>\n*Example:* ${prefix}setbot unblock 255763111390`);
             }
             
             let targetJid = paramText.replace(/[^0-9@]/g, '');
@@ -393,45 +442,50 @@ ${prefix}setbot settings warn:false block:true
                 targetJid = targetJid + '@s.whatsapp.net';
             }
             
-            // Remove from blocked list
             const index = settings.blockedUsers.indexOf(targetJid);
             if (index > -1) {
                 settings.blockedUsers.splice(index, 1);
-                saveSettings(settings);
-                
-                // Also unblock in WhatsApp
-                try {
-                    await conn.updateBlockStatus(targetJid, 'unblock');
-                } catch (e) {
-                    console.error('Unblock failed:', e);
-                }
-                
-                // Reset warnings
                 delete settings.warningCount[targetJid];
                 saveSettings(settings);
                 
-                await reply(`✅ *USER UNBLOCKED*\n\n` +
+                // Unblock in WhatsApp
+                try {
+                    await conn.updateBlockStatus(targetJid, 'unblock');
+                } catch (e) {}
+                
+                // Notify user
+                try {
+                    await conn.sendMessage(targetJid, {
+                        text: `✅ *YOUR ACCESS HAS BEEN RESTORED!*\n\n` +
+                              `🔓 *Blacklist removed*\n` +
+                              `🔄 *Warnings reset*\n` +
+                              `🤝 *You can now use the bot*\n\n` +
+                              `*Please follow rules to avoid future blocks.*`
+                    });
+                } catch (e) {}
+                
+                await reply(`✅ *USER PARDONED!*\n\n` +
                            `👤 *User:* ${targetJid.split('@')[0]}\n` +
-                           `🔓 *Status:* Removed from block list\n` +
-                           `🔄 *Warnings reset*\n` +
-                           `📞 *Also unblocked on WhatsApp*`);
+                           `🔄 *Status:* Removed from blacklist\n` +
+                           `📝 *Warnings:* Reset to zero\n` +
+                           `🤝 *Can now use bot again*`);
             } else {
-                await reply(`ℹ️ *User not found in block list*\n\n` +
+                await reply(`ℹ️ *User not found in blacklist*\n\n` +
                            `User: ${targetJid.split('@')[0]}\n` +
                            `Status: Not blocked`);
             }
             return;
         }
         
-        // ====== LIST BLOCKED USERS ======
+        // ====== LIST BLOCKED ======
         if (command === 'list') {
             if (settings.blockedUsers.length === 0) {
-                return reply(`✅ *No users currently blocked.*\n\n` +
-                           `Block list is empty.\n` +
-                           `Use \`${prefix}setbot block @user\` to add.`);
+                return reply(`✅ *Blacklist is empty!*\n\n` +
+                           `No users are currently blocked.\n` +
+                           `All users can access the bot.`);
             }
             
-            let listMsg = `*🚫 BLOCKED USERS LIST*\n\n` +
+            let listMsg = `*🚫 BLACKLISTED USERS*\n\n` +
                          `Total: ${settings.blockedUsers.length} user(s)\n\n`;
             
             settings.blockedUsers.forEach((jid, index) => {
@@ -439,7 +493,7 @@ ${prefix}setbot settings warn:false block:true
                 const warnings = settings.warningCount[jid] || 0;
                 listMsg += `${index + 1}. ${num}\n`;
                 listMsg += `   ⚠️ Warnings: ${warnings}\n`;
-                listMsg += `   📅 Blocked: Permanent\n\n`;
+                listMsg += `   🔒 Status: PERMANENTLY BLOCKED\n\n`;
             });
             
             listMsg += `*Commands:*\n` +
@@ -450,44 +504,10 @@ ${prefix}setbot settings warn:false block:true
             return;
         }
         
-        // ====== CHECK WARNINGS ======
-        if (command === 'warnings' || command === 'warn') {
-            if (!paramText) {
-                return reply(`*Usage:* ${prefix}setbot warnings @user\n*Example:* ${prefix}setbot warnings 255763111390`);
-            }
-            
-            let targetJid = paramText.replace(/[^0-9@]/g, '');
-            if (!targetJid.includes('@')) {
-                targetJid = targetJid + '@s.whatsapp.net';
-            }
-            
-            const warnings = settings.warningCount[targetJid] || 0;
-            const isBlocked = settings.blockedUsers.includes(targetJid);
-            
-            const warnMsg = `*⚠️ USER WARNINGS REPORT*\n\n` +
-                           `👤 *User:* ${targetJid.split('@')[0]}\n` +
-                           `⚡ *Warning Count:* ${warnings}\n` +
-                           `🚫 *Block Status:* ${isBlocked ? 'BLOCKED' : 'NOT BLOCKED'}\n` +
-                           `🔒 *Auto-block Threshold:* 3 warnings\n\n`;
-            
-            if (warnings >= 3 && !isBlocked) {
-                warnMsg += `🚨 *USER QUALIFIES FOR AUTO-BLOCK!*\n` +
-                          `Use \`${prefix}setbot block ${targetJid.split('@')[0]}\` to block.\n\n`;
-            }
-            
-            warnMsg += `*Actions:*\n` +
-                      `${prefix}setbot reset ${targetJid.split('@')[0]}\n` +
-                      `${prefix}setbot block ${targetJid.split('@')[0]}\n` +
-                      `${prefix}setbot unblock ${targetJid.split('@')[0]}`;
-            
-            await reply(warnMsg);
-            return;
-        }
-        
         // ====== RESET WARNINGS ======
         if (command === 'reset') {
             if (!paramText) {
-                return reply(`*Usage:* ${prefix}setbot reset @user\n*Example:* ${prefix}setbot reset 255763111390`);
+                return reply(`*Usage:* ${prefix}setbot reset <number>\n*Example:* ${prefix}setbot reset 255763111390`);
             }
             
             let targetJid = paramText.replace(/[^0-9@]/g, '');
@@ -497,84 +517,87 @@ ${prefix}setbot settings warn:false block:true
             
             const warnings = settings.warningCount[targetJid] || 0;
             delete settings.warningCount[targetJid];
+            
+            // Remove from blocked list if there
+            const blockIndex = settings.blockedUsers.indexOf(targetJid);
+            if (blockIndex > -1) {
+                settings.blockedUsers.splice(blockIndex, 1);
+                
+                // Unblock user
+                try {
+                    await conn.updateBlockStatus(targetJid, 'unblock');
+                } catch (e) {}
+            }
+            
             saveSettings(settings);
             
-            await reply(`✅ *WARNINGS RESET*\n\n` +
+            await reply(`✅ *USER WIPED CLEAN!*\n\n` +
                        `👤 *User:* ${targetJid.split('@')[0]}\n` +
                        `🔄 *Previous warnings:* ${warnings}\n` +
-                       `✅ *New count:* 0\n` +
-                       `📝 *Status:* Clean slate`);
+                       `✅ *New status:* CLEAN SLATE\n` +
+                       `🤝 *Can access bot normally*`);
+            return;
+        }
+        
+        // ====== TEST SECURITY ======
+        if (command === 'test') {
+            await reply(`🔫 *TESTING SECURITY SYSTEM...*\n\n` +
+                       `Sending test warning to owner...`);
+            
+            // Send test sticker
+            try {
+                await conn.sendMessage(sender, {
+                    sticker: { url: 'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp' }
+                });
+            } catch (e) {}
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Send test warning
+            await conn.sendMessage(sender, {
+                text: `🔫 *TEST WARNING - SYSTEM WORKING!* 🔫\n\n` +
+                      `⚠️ *This is a test of the security system*\n` +
+                      `✅ *Everything is functioning properly*\n` +
+                      `🚨 *Intruders will receive similar messages*\n\n` +
+                      `*Security Status:* ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}`
+            });
+            
+            await reply(`✅ *SECURITY TEST COMPLETE!*\n\n` +
+                       `🔫 Gun sticker: ✅ Sent\n` +
+                       `⚠️ Warning: ✅ Sent\n` +
+                       `🚨 System: ✅ Operational\n\n` +
+                       `Intruders will face the full force!`);
             return;
         }
         
         // ====== INVALID COMMAND ======
-        await reply(`❌ *Invalid sub-command!*\n\n` +
+        await reply(`❌ *Invalid command!*\n\n` +
                    `Use: ${prefix}setbot help\n` +
-                   `To see all available commands.`);
+                   `To see available commands.`);
 
     } catch (error) {
         console.error('Setbot command error:', error);
-        await reply(`❌ *Command Error:* ${error.message}`);
+        await reply(`❌ *Error:* ${error.message}`);
     }
 });
 
-// ========== MIDDLEWARE INTEGRATION ==========
+// ========== AUTO-SAVE ON EXIT ==========
 
-// This middleware will run for EVERY message
-module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, reply }) => {
-    try {
-        // Skip if not a command
-        if (!isCmd) return;
-        
-        // Check access
-        const access = checkAccess(conn, mek, m);
-        
-        if (!access.allowed) {
-            // Don't process command for unauthorized users
-            if (settings.enabled && settings.warningMode) {
-                await sendWarning(conn, mek, m);
-            }
-            
-            // Also notify owner about violation
-            const config = require('../config');
-            const owner = config.OWNER_NUMBER ? 
-                config.OWNER_NUMBER.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : 
-                conn.user.id;
-            
-            if (owner !== sender) {
-                try {
-                    await conn.sendMessage(owner, {
-                        text: `🚨 *UNAUTHORIZED ACCESS ATTEMPT*\n\n` +
-                              `👤 *User:* ${sender}\n` +
-                              `📝 *Command:* ${body}\n` +
-                              `📅 *Time:* ${new Date().toLocaleString()}\n` +
-                              `⚠️ *Warnings:* ${settings.warningCount[sender] || 0}\n` +
-                              `🔒 *Action:* Command blocked`
-                    });
-                } catch (e) {
-                    console.error('Owner notification failed:', e);
-                }
-            }
-            
-            // Return true to stop further processing
-            return true;
-        }
-        
-        // Allow command to proceed
-        return false;
-    } catch (error) {
-        console.error('Setbot middleware error:', error);
-        return false; // Don't block on error
-    }
-};
-
-// Auto-save settings on exit
 process.on('SIGINT', () => {
     saveSettings(settings);
+    console.log('🔫 Setbot settings saved');
     process.exit();
 });
 
 process.on('SIGTERM', () => {
     saveSettings(settings);
+    console.log('🔫 Setbot settings saved');
     process.exit();
 });
+
+// ========== CLEANUP OLD WARNINGS ==========
+// Auto-clean warnings older than 30 days
+setInterval(() => {
+    console.log('🧹 Cleaning old setbot warnings...');
+    saveSettings(settings);
+}, 3600000); // Every hour
