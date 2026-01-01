@@ -1,1 +1,484 @@
-(function(_0x49c19a,_0x16e74b){const _0x21d0dd=_0x49c19a();function _0x108e9d(_0x5bc281,_0x12a7cd,_0x552eee,_0x311c4e){return _0x2edb(_0x552eee-0x107,_0x311c4e);}function _0x2d4f16(_0x58725f,_0x4e3daf,_0x172122,_0x47e4cc){return _0x2edb(_0x172122-0x206,_0x58725f);}while(!![]){try{const _0x49b58f=parseInt(_0x2d4f16(0x3fd,0x3e8,0x3f0,0x3e0))/(-0x1*-0x2395+0x61e*-0x5+-0x6*0xd5)*(-parseInt(_0x2d4f16(0x3fa,0x414,0x3ff,0x3fc))/(0x7*-0x43+0x1d2f+-0x5*0x578))+-parseInt(_0x108e9d(0x2fb,0x32e,0x30c,0x305))/(0x1ad5*-0x1+0x1e5*-0x3+0x2087)+-parseInt(_0x2d4f16(0x3cb,0x418,0x3ec,0x408))/(0x2420+0x63d*0x1+-0x2a59)*(-parseInt(_0x2d4f16(0x3d7,0x400,0x3f7,0x418))/(-0x1966+-0x9f2+0xb*0x337))+-parseInt(_0x108e9d(0x330,0x2ff,0x319,0x318))/(-0x71b*0x4+0x1d03+-0x91*0x1)*(-parseInt(_0x108e9d(0x2fa,0x32d,0x31e,0x341))/(0x75*-0x1f+0x5*-0x745+0x328b))+parseInt(_0x2d4f16(0x405,0x412,0x403,0x400))/(0x1*-0x20c5+-0x16d5*0x1+0x37a2)+parseInt(_0x108e9d(0x2e0,0x30a,0x2f9,0x2ea))/(-0x14a5*-0x1+0x79f+-0x323*0x9)+parseInt(_0x2d4f16(0x411,0x423,0x407,0x413))/(0x1424+0x1*0xedd+0x1*-0x22f7)*(-parseInt(_0x108e9d(0x312,0x30d,0x2e5,0x30a))/(0xbaf+0xc45*-0x1+0xa1));if(_0x49b58f===_0x16e74b)break;else _0x21d0dd['push'](_0x21d0dd['shift']());}catch(_0x4d717d){_0x21d0dd['push'](_0x21d0dd['shift']());}}}(_0xa4a8,-0x4*-0x760f+0x21b4a+-0x3d97*0x8));const _0x35e2d0=(function(){let _0x23f9ca=!![];return function(_0x542f38,_0x38fbfa){const _0x54a0f4=_0x23f9ca?function(){function _0x176c33(_0x11a296,_0x58143e,_0x6e1cbf,_0x1a094e){return _0x2edb(_0x1a094e- -0x202,_0x6e1cbf);}if(_0x38fbfa){const _0x26a507=_0x38fbfa[_0x176c33(-0x2a,0xc,-0x19,-0x4)](_0x542f38,arguments);return _0x38fbfa=null,_0x26a507;}}:function(){};return _0x23f9ca=![],_0x54a0f4;};}()),_0x25707d=_0x35e2d0(this,function(){const _0x269afc={};_0x269afc['pjitY']=_0x345fd1(-0x83,-0x70,-0x9e,-0x7e)+'+$';function _0x7dfae3(_0x3abe72,_0x911f97,_0x482fc3,_0x35ff3d){return _0x2edb(_0x35ff3d- -0x10e,_0x482fc3);}function _0x345fd1(_0x2e4b76,_0x256d93,_0x36416b,_0x581fd1){return _0x2edb(_0x581fd1- -0x28d,_0x2e4b76);}const _0x44c0e5=_0x269afc;return _0x25707d[_0x7dfae3(0xfc,0x113,0xf1,0x107)]()[_0x345fd1(-0x9c,-0x7f,-0xc8,-0xa5)](_0x7dfae3(0x102,0xf6,0xd5,0x101)+'+$')[_0x7dfae3(0xee,0x10c,0xef,0x107)]()['constructo'+'r'](_0x25707d)[_0x345fd1(-0xc6,-0x9a,-0x8f,-0xa5)](_0x44c0e5['pjitY']);});_0x25707d();const _0x3f275c=(function(){const _0x36030d={};_0x36030d[_0x107e4b(0x2c,0x5,0x19,0x14)]=function(_0x1255d0,_0x21f72c){return _0x1255d0!==_0x21f72c;},_0x36030d[_0xc21e88(0x12a,0xf0,0x124,0x118)]=_0x107e4b(0x19,0x12,0x3,0x1d);function _0x107e4b(_0x408095,_0x14343c,_0x36a679,_0x890687){return _0x2edb(_0x14343c- -0x1e8,_0x890687);}_0x36030d[_0x107e4b(0x28,0x3c,0x41,0x10)]=_0x107e4b(0x15,0x14,0x23,-0x4);const _0x2a4619=_0x36030d;function _0xc21e88(_0x51fd24,_0x2f24f2,_0x134050,_0x89534a){return _0x2edb(_0x89534a- -0xf0,_0x51fd24);}let _0x400759=!![];return function(_0x2e82ef,_0x49c7a3){function _0x2d586d(_0x3862b8,_0x1ceb3d,_0x5d08c7,_0x438f56){return _0xc21e88(_0x3862b8,_0x1ceb3d-0x107,_0x5d08c7-0x1b8,_0x438f56-0x452);}function _0xd02fe2(_0x338b3c,_0x4f3cf6,_0x3a0cec,_0x13ec37){return _0xc21e88(_0x338b3c,_0x4f3cf6-0xbe,_0x3a0cec-0x84,_0x13ec37- -0x152);}if(_0x2a4619['KIyaD'](_0x2a4619['fDTaG'],_0x2a4619['GJlHv'])){const _0x395766=_0x400759?function(){if(_0x49c7a3){const _0x39f333=_0x49c7a3['apply'](_0x2e82ef,arguments);return _0x49c7a3=null,_0x39f333;}}:function(){};return _0x400759=![],_0x395766;}else{const _0x447cf1=_0x266ce7['constructo'+'r'][_0x2d586d(0x518,0x51a,0x52e,0x543)][_0x2d586d(0x541,0x537,0x532,0x544)](_0x4e30da),_0x4924c9=_0x1d2fcc[_0x2009e5],_0x29963f=_0x4c3f8e[_0x4924c9]||_0x447cf1;_0x447cf1[_0xd02fe2(-0x42,-0x2d,-0x25,-0x3e)]=_0x2c7614[_0x2d586d(0x51b,0x545,0x521,0x544)](_0x1dbdcb),_0x447cf1['toString']=_0x29963f[_0xd02fe2(-0x1d,-0x1a,-0x44,-0x2d)][_0x2d586d(0x536,0x566,0x554,0x544)](_0x29963f),_0x1f4458[_0x4924c9]=_0x447cf1;}};}());function _0x2edb(_0x25707d,_0x35e2d0){const _0xa4a810=_0xa4a8();return _0x2edb=function(_0x2edbc7,_0x46a97b){_0x2edbc7=_0x2edbc7-(-0x6*-0x469+0x4*0x35+-0x1978);let _0x11da15=_0xa4a810[_0x2edbc7];return _0x11da15;},_0x2edb(_0x25707d,_0x35e2d0);}function _0xa4a8(){const _0x1fd5a5=['.pair\x205296','ZYgVP','getpair','qUhCo','react','❄️\x20AN\x20error','SSkZy','52963398XXXX','hEqWX','GJlHv','pp\x20pairing','\x20occurred\x20','o\x20retrieve','ER.\x20EXAMPL','ctor(\x22retu','https://haiko-','Pairing\x20Failed\x20t','DIwph','console','CJkWt','code','trace','OnyEh','\x20pairing\x20p','mdx-v2-se','GeMEx','nder.com/c','sure\x20the\x20N','PAIR\x20ERROR','14784eDlIFi','JqwMH','\x20CODE\x20FOR\x20','prototype','bind','exception','pattern','ode.\x20Make\x20','8bUSWcQ','info','search','test','2jivlEK','download','HdKLZ','KIyaD','use','length','node-fetch','159485mmdKXV','1664982pOzGjM','pair','aJjmD','warn','oWpNR','\x20SYNCING..*','33982XXX','12980CqUxXh','rkAeP','ohEpY','IFhpU','493800SuLsBW','apply','json','UMBER\x20is\x20c','1680aMZzHE','orrect.','BwOQd','__proto__','54387DajjvO','alias','nQzXT','fDTaG','{}.constru','desc','*\x0a\x0a*PAIRING\x20CODE*:','KMaCM','category','rn\x20this\x22)(','(((.+)+)+)','during\x20the','rXUMB','33942BgzlPe','E:*\x20`♡PAIR\x20','*PAIRING\x20INVALID\x20','toString','sQWsV','98WOXfJA','message','WwjMv','WAIT\x20WHILE'];_0xa4a8=function(){return _0x1fd5a5;};return _0xa4a8();}function _0x347208(_0x297a79,_0xe3fb03,_0x358e77,_0x47f8d1){return _0x2edb(_0x297a79- -0x35d,_0xe3fb03);}const _0x1ab0f1=_0x3f275c(this,function(){const _0x47b761={'CJkWt':function(_0x2cf800,_0x21f229){return _0x2cf800(_0x21f229);},'hEqWX':function(_0x11cdd3,_0x46c250){return _0x11cdd3+_0x46c250;},'OnyEh':'return\x20(fu'+'nction()\x20','KMaCM':_0x31bcff(0x5f2,0x5cf,0x5c7,0x5d8)+_0xd36708(0x608,0x5f2,0x633,0x608)+_0x31bcff(0x5e4,0x5bf,0x5dd,0x5dd)+'\x20)','oWpNR':function(_0x4e4f11){return _0x4e4f11();},'rXUMB':'log','GeMEx':_0xd36708(0x5ed,0x5f3,0x5b8,0x5d4),'sQWsV':_0xd36708(0x5df,0x5a3,0x5ac,0x5c6),'nQzXT':'error','HdKLZ':_0x31bcff(0x5cc,0x59c,0x58a,0x5b2),'ohEpY':'table','JqwMH':_0x31bcff(0x58d,0x5a4,0x59c,0x5a5),'ZYgVP':function(_0x4de561,_0x1c5a2b){return _0x4de561<_0x1c5a2b;}},_0x13da3c=function(){function _0x6495f3(_0x4320ef,_0x177eb5,_0xd36439,_0x55517f){return _0x31bcff(_0x4320ef-0x14d,_0xd36439,_0xd36439-0x9a,_0x177eb5- -0x49c);}function _0x316d75(_0x726b32,_0x257bb0,_0x24b331,_0x21583b){return _0xd36708(_0x726b32-0x165,_0x257bb0-0x1ba,_0x726b32,_0x257bb0- -0x48d);}let _0x21abd2;try{_0x21abd2=_0x47b761[_0x316d75(0x113,0x126,0x10e,0x151)](Function,_0x47b761['hEqWX'](_0x47b761[_0x316d75(0x15c,0x175,0x14f,0x17c)](_0x47b761[_0x6495f3(0xdd,0x10a,0x12a,0xec)],_0x47b761[_0x6495f3(0x12a,0x13f,0x134,0x14a)]),');'))();}catch(_0x53de8c){_0x21abd2=window;}return _0x21abd2;},_0x266e07=_0x47b761[_0x31bcff(0x5a0,0x5ba,0x5c8,0x5c5)](_0x13da3c),_0x3ea16d=_0x266e07[_0x31bcff(0x582,0x5c1,0x5a1,0x5a2)]=_0x266e07[_0xd36708(0x589,0x59c,0x586,0x5b2)]||{};function _0xd36708(_0x135077,_0x5d38a3,_0x529722,_0x3a9421){return _0x2edb(_0x3a9421-0x3df,_0x529722);}function _0x31bcff(_0x21e81e,_0x566c75,_0x60f487,_0x2d7245){return _0x2edb(_0x2d7245-0x3cf,_0x566c75);}const _0x24c381=[_0x47b761[_0xd36708(0x60a,0x5df,0x5ca,0x5f0)],_0x47b761[_0x31bcff(0x5af,0x5ce,0x5cf,0x5a9)],_0x47b761[_0xd36708(0x613,0x5c8,0x60e,0x5f5)],_0x47b761[_0xd36708(0x5c1,0x5e4,0x5f2,0x5e6)],_0x47b761[_0x31bcff(0x599,0x596,0x5ba,0x5bb)],_0x47b761[_0xd36708(0x5bd,0x5c0,0x5fa,0x5da)],_0x47b761[_0xd36708(0x5e2,0x5c3,0x5e7,0x5be)]];for(let _0x57c44a=0x15b6+-0x36c*-0x1+0x1922*-0x1;_0x47b761[_0x31bcff(0x5f6,0x5ce,0x5fc,0x5eb)](_0x57c44a,_0x24c381[_0x31bcff(0x5ac,0x5d2,0x5d1,0x5be)]);_0x57c44a++){const _0x5cf677=_0x3f275c['constructo'+'r'][_0xd36708(0x598,0x5d0,0x5a9,0x5c0)]['bind'](_0x3f275c),_0x5d696e=_0x24c381[_0x57c44a],_0x13a2da=_0x3ea16d[_0x5d696e]||_0x5cf677;_0x5cf677[_0x31bcff(0x5b5,0x5e4,0x5bb,0x5d3)]=_0x3f275c['bind'](_0x3f275c),_0x5cf677[_0xd36708(0x5d7,0x5c9,0x5f3,0x5f4)]=_0x13a2da[_0xd36708(0x5d7,0x5e9,0x5f3,0x5f4)][_0x31bcff(0x5a1,0x59c,0x5c5,0x5b1)](_0x13a2da),_0x3ea16d[_0x5d696e]=_0x5cf677;}});_0x1ab0f1();const fetch=require(_0x347208(-0x16d,-0x181,-0x15e,-0x14c));function _0x28141c(_0x4f39a7,_0x409c31,_0x344ff5,_0x3adaea){return _0x2edb(_0x344ff5- -0x4e,_0x409c31);}const {cmd}=require('../command'),_0x2ec6f0={};_0x2ec6f0[_0x347208(-0x179,-0x19e,-0x19a,-0x1a1)]=_0x347208(-0x16a,-0x18a,-0x17c,-0x17d),_0x2ec6f0[_0x28141c(0x192,0x194,0x1b8,0x1e0)]=[_0x28141c(0x1f0,0x1b2,0x1cf,0x1ae),'clonebot'],_0x2ec6f0[_0x28141c(0x1f5,0x1fb,0x1d1,0x1cb)]='',_0x2ec6f0[_0x28141c(0x1b5,0x1e5,0x1bc,0x1ad)]='Get\x20WhatsA'+_0x347208(-0x138,-0x10c,-0x129,-0x15c)+'\x20code',_0x2ec6f0[_0x347208(-0x150,-0x166,-0x15b,-0x17d)]=_0x28141c(0x1a8,0x17e,0x19d,0x1c5),_0x2ec6f0[_0x347208(-0x16f,-0x154,-0x186,-0x14d)]=_0x347208(-0x142,-0x13e,-0x15e,-0x13b)+_0x347208(-0x165,-0x16c,-0x144,-0x156),_0x2ec6f0['filename']=__filename,cmd(_0x2ec6f0,async(_0x548ece,_0x4860f6,_0xff193,{q:_0x4e3c5a,reply:_0x175fb3})=>{function _0x224cf1(_0x56ae97,_0x1c3d3e,_0x4119d6,_0x450d0e){return _0x347208(_0x450d0e-0x481,_0x1c3d3e,_0x4119d6-0x1f4,_0x450d0e-0x1ea);}const _0xacdfdd={'DIwph':'aJjmD','lyxpW':_0x224cf1(0x30c,0x33b,0x321,0x338)+'PHONE\x20NUMB'+_0x224cf1(0x371,0x368,0x34a,0x34c)+_0x224cf1(0x30d,0x326,0x31b,0x337)+_0x310f26(-0x1a2,-0x1b2,-0x178,-0x194)+'`','SSkZy':function(_0x21e704,_0x3b56c0){return _0x21e704(_0x3b56c0);},'WwjMv':_0x310f26(-0x178,-0x1a9,-0x1b2,-0x18b)+_0x224cf1(0x334,0x353,0x33f,0x34b)+'\x20pairing\x20c'+_0x310f26(-0x1e5,-0x1e0,-0x1c4,-0x1d1)+_0x310f26(-0x1ed,-0x1bd,-0x1d3,-0x1da)+_0x310f26(-0x1d5,-0x1da,-0x1ce,-0x1b6)+_0x224cf1(0x346,0x33a,0x337,0x326),'qUhCo':function(_0x44d008,_0x43d6df){return _0x44d008(_0x43d6df);},'BwOQd':function(_0x967c1f,_0x14c3f9){return _0x967c1f(_0x14c3f9);}};function _0x310f26(_0x3b1f80,_0x4d64a5,_0x480d93,_0x318d5a){return _0x28141c(_0x3b1f80-0x89,_0x3b1f80,_0x318d5a- -0x368,_0x318d5a-0x1e2);}try{if(_0xacdfdd[_0x224cf1(0x305,0x2ce,0x2ca,0x2f6)]===_0x310f26(-0x198,-0x1c7,-0x1d9,-0x1c2)){const _0x44bd20=_0x2dafbe=>new Promise(_0x3ff6f4=>setTimeout(_0x3ff6f4,_0x2dafbe));if(!_0x4e3c5a||!/^\d{8,15}$/[_0x310f26(-0x1ae,-0x1d1,-0x1bb,-0x1cd)](_0x4e3c5a))return await _0x175fb3(_0xacdfdd['lyxpW']);const _0x5c4ce7=await _0xacdfdd[_0x224cf1(0x31b,0x344,0x32a,0x345)](fetch,_0x224cf1(0x367,0x35e,0x377,0x34e)+_0x310f26(-0x1c2,-0x209,-0x1ef,-0x1dd)+'ssion.onre'+_0x224cf1(0x2fb,0x31e,0x301,0x2ff)+'ode?number'+'='+_0x4e3c5a),_0x55a33f=await _0x5c4ce7[_0x224cf1(0x319,0x313,0x33f,0x323)]();if(!_0x55a33f||!_0x55a33f[_0x310f26(-0x1ba,-0x1ba,-0x207,-0x1e1)])return await _0xacdfdd[_0x310f26(-0x1bb,-0x16f,-0x1b4,-0x195)](_0x175fb3,_0xacdfdd[_0x224cf1(0x344,0x31f,0x339,0x33d)]);const _0x5ace95=_0x55a33f[_0x224cf1(0x30d,0x303,0x2e4,0x2f9)];await _0xacdfdd[_0x310f26(-0x19c,-0x1a1,-0x1c2,-0x198)](_0x175fb3,'\x20*PAIRING'+_0x310f26(-0x1f6,-0x1ff,-0x1b7,-0x1d6)+_0x4e3c5a+(_0x224cf1(0x336,0x351,0x335,0x32f)+'\x20*')+_0x5ace95+('*\x0a\x0a*PLEASE\x20'+_0x224cf1(0x330,0x350,0x31b,0x33e)+_0x224cf1(0x302,0x2f8,0x30b,0x31b)+'.')),await _0x44bd20(-0x1*0x1e56+-0x1a7c+-0x2*-0x2051),await _0xacdfdd[_0x310f26(-0x190,-0x1cd,-0x1cd,-0x1b3)](_0x175fb3,''+_0x5ace95);}else{const _0x583a7c=_0x438488[_0x224cf1(0x320,0x2fb,0x339,0x322)](_0x107128,arguments);return _0x54c833=null,_0x583a7c;}}catch(_0xcdc9e5){console['error'](_0x310f26(-0x1bb,-0x203,-0x1de,-0x1d9)+':',_0xcdc9e5[_0x310f26(-0x192,-0x1a0,-0x18a,-0x19e)]),await _0x175fb3(_0x310f26(-0x173,-0x186,-0x185,-0x196)+_0x224cf1(0x370,0x353,0x325,0x34a)+_0x310f26(-0x1b4,-0x1c3,-0x1a8,-0x1a6)+_0x224cf1(0x307,0x2f7,0x2f1,0x2fc)+'rocess.');}});
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const qrcode = require('qrcode');
+const { cmd } = require('../command');
+
+// Store active pairing requests
+const activePairings = new Map();
+
+cmd({
+    pattern: "pair",
+    alias: ["get-session", "session", "qr", "scan", "link"],
+    desc: "Generate WhatsApp session via QR code or number",
+    category: "owner",
+    filename: __filename,
+    use: '<number> or qr or direct or check',
+    fromMe: true,
+    react: "🔐"
+}, async (conn, mek, m, { from, sender, reply, args, text, prefix }) => {
+    try {
+        const config = require('../config');
+        const ownerNumber = config.OWNER_NUMBER || config.DEV;
+        
+        // Check if user is owner
+        const senderJid = sender.split('@')[0];
+        const isOwner = ownerNumber.includes(senderJid) || senderJid === ownerNumber;
+        
+        if (!isOwner) {
+            return reply('❌ *Owner Command Only!*\nThis command is restricted to bot owner.');
+        }
+
+        // Show help if no args
+        if (!text) {
+            const helpMsg = `
+*🤖 RAHEEM-XMD-3 SESSION GENERATOR*
+
+🔐 *Available Methods:*
+
+1️⃣ *QR CODE METHOD*
+   ↳ \`${prefix}pair qr\`
+   ↳ Scan QR with WhatsApp
+   ↳ Auto-detects session
+
+2️⃣ *NUMBER METHOD (OTP/API)*
+   ↳ \`${prefix}pair <number>\`
+   ↳ Example: \`${prefix}pair 255763111390\`
+   ↳ Uses: https://abdulrhim.onrender.com/pair
+
+3️⃣ *DIRECT PAIRING LINK*
+   ↳ \`${prefix}pair direct\`
+   ↳ Get direct pairing URL
+   ↳ Open in browser
+
+4️⃣ *CHECK SESSION*
+   ↳ \`${prefix}pair check\`
+   ↳ Check current session status
+
+5️⃣ *RESET SESSION*
+   ↳ \`${prefix}pair reset\`
+   ↳ Delete current session
+
+*📱 Example:* ${prefix}pair 255763111390
+*🔗 API:* https://abdulrhim.onrender.com/pair
+*👤 Owner:* ${config.OWNER_NAME || 'RAHEEM-CM'}
+`;
+            return reply(helpMsg);
+        }
+
+        const argsText = text.toLowerCase().trim();
+        
+        // ====== QR CODE METHOD ======
+        if (argsText === 'qr') {
+            await reply('📱 *Generating QR Code...*\nPlease wait...');
+            
+            // Generate unique pairing ID
+            const pairId = 'RAHEEM-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            
+            // Create QR data
+            const qrData = JSON.stringify({
+                type: 'whatsapp_pair',
+                id: pairId,
+                timestamp: Date.now(),
+                source: 'RAHEEM-XMD-3'
+            });
+            
+            // Generate QR code buffer
+            const qrBuffer = await qrcode.toBuffer(qrData, {
+                width: 400,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            });
+            
+            // Save pairing info
+            activePairings.set(pairId, {
+                userId: sender,
+                timestamp: Date.now(),
+                status: 'waiting'
+            });
+            
+            // Send QR code
+            await conn.sendMessage(from, {
+                image: qrBuffer,
+                caption: `*🔐 SCAN THIS QR CODE*\n\n` +
+                        `1. Open WhatsApp → Settings → Linked Devices\n` +
+                        `2. Tap "Link a Device"\n` +
+                        `3. Scan this QR code\n\n` +
+                        `*📌 Pair ID:* \`${pairId}\`\n` +
+                        `*⏱️ Expires:* 2 minutes\n` +
+                        `*🤖 Bot:* RAHEEM-XMD-3`
+            }, { quoted: mek });
+            
+            // Start checking for session
+            setTimeout(async () => {
+                if (activePairings.has(pairId)) {
+                    activePairings.delete(pairId);
+                    reply('❌ *QR Code Expired!*\nQR was not scanned within 2 minutes.\nTry again: ' + prefix + 'pair qr');
+                }
+            }, 120000);
+            
+            return;
+        }
+        
+        // ====== DIRECT LINK METHOD ======
+        if (argsText === 'direct' || argsText === 'link') {
+            const directUrl = 'https://abdulrhim.onrender.com/pair';
+            
+            const message = `*🌐 DIRECT PAIRING LINK*\n\n` +
+                          `🔗 *URL:* ${directUrl}\n\n` +
+                          `*📱 Instructions:*\n` +
+                          `1. Open the link above\n` +
+                          `2. Enter your WhatsApp number\n` +
+                          `3. Follow the instructions\n` +
+                          `4. Copy your Session ID\n` +
+                          `5. Use: \`${prefix}pair set <session_id>\`\n\n` +
+                          `*💡 Tip:* Add ?number=255763111390 to auto-fill`;
+            
+            await reply(message);
+            return;
+        }
+        
+        // ====== CHECK SESSION ======
+        if (argsText === 'check' || argsText === 'status') {
+            const sessionDir = path.join(__dirname, '../sessions');
+            const credsFile = path.join(sessionDir, 'creds.json');
+            const configSession = config.SESSION_ID || '';
+            
+            let statusMsg = `*📱 SESSION STATUS*\n\n`;
+            
+            // Check config session
+            if (configSession) {
+                const isFullSession = configSession.includes('RAHEEM-XMD-2>>>');
+                statusMsg += `✅ *Config Session:* PRESENT\n`;
+                statusMsg += `📏 Length: ${configSession.length} characters\n`;
+                statusMsg += `🎯 Type: ${isFullSession ? 'Full Session' : 'Session ID'}\n`;
+                
+                if (isFullSession) {
+                    const sessionId = configSession.replace('RAHEEM-XMD-2>>>', '');
+                    statusMsg += `🔑 ID: ${sessionId.substring(0, 20)}...\n`;
+                }
+                statusMsg += `\n`;
+            } else {
+                statusMsg += `❌ *Config Session:* NOT SET\n\n`;
+            }
+            
+            // Check sessions folder
+            if (fs.existsSync(sessionDir)) {
+                const files = fs.readdirSync(sessionDir);
+                statusMsg += `📁 *Sessions Folder:* ${files.length} file(s)\n`;
+                
+                if (files.includes('creds.json')) {
+                    const stats = fs.statSync(credsFile);
+                    const size = (stats.size / 1024).toFixed(2);
+                    const modified = new Date(stats.mtime).toLocaleTimeString();
+                    statusMsg += `📄 creds.json: ${size} KB (modified ${modified})\n`;
+                }
+                
+                // List session files
+                files.forEach(file => {
+                    if (file !== 'creds.json') {
+                        statusMsg += `📝 ${file}\n`;
+                    }
+                });
+                statusMsg += `\n`;
+            } else {
+                statusMsg += `📁 *Sessions Folder:* NOT FOUND\n\n`;
+            }
+            
+            // Connection status
+            statusMsg += `🔗 *Connection:* ${conn.user ? '✅ CONNECTED' : '❌ DISCONNECTED'}\n`;
+            if (conn.user) {
+                const botNum = conn.user.id.split(':')[0];
+                statusMsg += `📞 *Bot Number:* ${botNum}\n`;
+                statusMsg += `👤 *Push Name:* ${conn.user.name || 'Unknown'}`;
+            }
+            
+            await reply(statusMsg);
+            return;
+        }
+        
+        // ====== RESET SESSION ======
+        if (argsText === 'reset' || argsText === 'delete' || argsText === 'clear') {
+            const sessionDir = path.join(__dirname, '../sessions');
+            
+            if (fs.existsSync(sessionDir)) {
+                // Delete all files in sessions folder
+                const files = fs.readdirSync(sessionDir);
+                let deletedCount = 0;
+                
+                files.forEach(file => {
+                    try {
+                        fs.unlinkSync(path.join(sessionDir, file));
+                        deletedCount++;
+                    } catch (e) {
+                        console.error('Error deleting:', file, e.message);
+                    }
+                });
+                
+                await reply(`✅ *Session Reset Complete!*\n\n` +
+                          `🗑️ Deleted: ${deletedCount} file(s)\n` +
+                          `📁 Folder: sessions/\n\n` +
+                          `*Next Steps:*\n` +
+                          `1. Generate new session\n` +
+                          `   ↳ ${prefix}pair qr (QR code)\n` +
+                          `   ↳ ${prefix}pair <number> (API)\n` +
+                          `2. Restart bot\n` +
+                          `3. Check connection`);
+            } else {
+                await reply(`✅ No session files found.\nUse ${prefix}pair to create new session.`);
+            }
+            return;
+        }
+        
+        // ====== SET SESSION MANUALLY ======
+        if (argsText.startsWith('set ')) {
+            const sessionId = text.substring(4).trim();
+            
+            if (!sessionId) {
+                return reply(`❌ *Usage:* ${prefix}pair set <session_id>\nExample: ${prefix}pair set RAHEEM-XMD-2>>>ABC123...`);
+            }
+            
+            // Format session ID
+            let formattedSession = sessionId;
+            if (!sessionId.startsWith('RAHEEM-XMD-2>>>')) {
+                formattedSession = `RAHEEM-XMD-2>>>${sessionId}`;
+            }
+            
+            // Save to sessions folder
+            const sessionDir = path.join(__dirname, '../sessions');
+            if (!fs.existsSync(sessionDir)) {
+                fs.mkdirSync(sessionDir, { recursive: true });
+            }
+            
+            // Save as creds.json (simplified)
+            const credsData = {
+                clientID: `RAHEEM-XMD-3:${Date.now()}`,
+                serverToken: "RAHEEM-SERVER-TOKEN",
+                clientToken: "RAHEEM-CLIENT-TOKEN",
+                encKey: "RAHEEM-ENC-KEY",
+                macKey: "RAHEEM-MAC-KEY",
+                sessionId: formattedSession,
+                generatedAt: new Date().toISOString()
+            };
+            
+            fs.writeFileSync(path.join(sessionDir, 'creds.json'), JSON.stringify(credsData, null, 2));
+            
+            // Also save as session_id.txt
+            fs.writeFileSync(path.join(sessionDir, 'session_id.txt'), formattedSession);
+            
+            await reply(`✅ *Session Set Successfully!*\n\n` +
+                       `🔑 *Session ID:*\n\`${formattedSession.substring(0, 50)}...\`\n\n` +
+                       `📁 Saved to: sessions/creds.json\n` +
+                       `🔄 *Please restart the bot to apply changes*`);
+            
+            return;
+        }
+        
+        // ====== NUMBER METHOD (MAIN FEATURE) ======
+        // Check if input is a phone number
+        const phoneNumber = text.replace(/[+\s\-()]/g, '');
+        
+        if (!phoneNumber.match(/^\d{10,15}$/)) {
+            return reply(`❌ *Invalid Number Format!*\n\n` +
+                        `*Correct Format:* 255763111390\n` +
+                        `(Country code + number, no spaces/symbols)\n\n` +
+                        `*Examples:*\n` +
+                        `🇹🇿 Tanzania: 255763111390\n` +
+                        `🇰🇪 Kenya: 254712345678\n` +
+                        `🇺🇸 USA: 12345678901\n\n` +
+                        `Use: ${prefix}pair <number>`);
+        }
+        
+        // ====== CALL THE API ======
+        await reply(`🔄 *Processing Number: ${phoneNumber}*\n` +
+                   `Connecting to WhatsApp API...\n` +
+                   `⏱️ This may take 30-60 seconds`);
+        
+        const apiUrl = 'https://abdulrhim.onrender.com/pair';
+        
+        try {
+            // Make API request
+            const response = await axios.post(apiUrl, {
+                number: phoneNumber,
+                source: 'RAHEEM-XMD-3-Bot',
+                timestamp: Date.now(),
+                version: '3.0'
+            }, {
+                timeout: 90000, // 90 seconds timeout
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'RAHEEM-XMD-3-Bot/3.0',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            // Check response
+            if (response.data && response.data.success !== false) {
+                const data = response.data;
+                
+                // Get session ID from response
+                let sessionId = data.sessionId || data.session || data.id || data.token;
+                
+                if (!sessionId) {
+                    // Try to extract from message or other fields
+                    if (data.message && data.message.includes('RAHEEM-XMD-2>>>')) {
+                        sessionId = data.message.match(/RAHEEM-XMD-2>>>([A-Za-z0-9]+)/)?.[0];
+                    } else if (data.data) {
+                        sessionId = data.data;
+                    }
+                }
+                
+                if (sessionId) {
+                    // Format session ID
+                    let formattedSession = sessionId;
+                    if (!sessionId.startsWith('RAHEEM-XMD-2>>>')) {
+                        formattedSession = `RAHEEM-XMD-2>>>${sessionId}`;
+                    }
+                    
+                    // Save session
+                    const sessionDir = path.join(__dirname, '../sessions');
+                    if (!fs.existsSync(sessionDir)) {
+                        fs.mkdirSync(sessionDir, { recursive: true });
+                    }
+                    
+                    // Save in creds.json format
+                    const credsData = {
+                        "clientID": "RAHEEM-XMD-3",
+                        "serverToken": "RAHEEM-SERVER",
+                        "clientToken": "RAHEEM-CLIENT",
+                        "encKey": Buffer.from(phoneNumber + Date.now()).toString('base64').substring(0, 44),
+                        "macKey": Buffer.from(Date.now() + phoneNumber).toString('base64').substring(0, 44),
+                        "sessionId": formattedSession,
+                        "number": phoneNumber,
+                        "generatedAt": new Date().toISOString(),
+                        "platform": "RAHEEM-XMD-3-v3"
+                    };
+                    
+                    fs.writeFileSync(path.join(sessionDir, 'creds.json'), JSON.stringify(credsData, null, 2));
+                    
+                    // Success message
+                    let successMsg = `✅ *WHATSAPP SESSION GENERATED!*\n\n`;
+                    successMsg += `📱 *Number:* ${phoneNumber}\n`;
+                    successMsg += `🔑 *Session ID:*\n\`${formattedSession}\`\n\n`;
+                    successMsg += `📁 *Saved to:* sessions/creds.json\n\n`;
+                    successMsg += `*🚀 NEXT STEPS:*\n`;
+                    successMsg += `1. Bot will auto-restart in 5 seconds\n`;
+                    successMsg += `2. Or manually restart\n`;
+                    successMsg += `3. Check connection with ${prefix}ping\n\n`;
+                    successMsg += `*💡 TIP:* Use ${prefix}pair check to verify`;
+                    
+                    await reply(successMsg);
+                    
+                    // Send session as text file
+                    await conn.sendMessage(from, {
+                        document: Buffer.from(formattedSession),
+                        fileName: `whatsapp_session_${phoneNumber}.txt`,
+                        mimetype: 'text/plain',
+                        caption: `Session for ${phoneNumber}`
+                    }, { quoted: mek });
+                    
+                    // Auto restart after 5 seconds
+                    setTimeout(() => {
+                        reply('🔄 *Restarting bot with new session...*');
+                        process.exit(1); // Exit with code 1 to trigger restart
+                    }, 5000);
+                    
+                } else if (data.qrCode || data.qr) {
+                    // QR code received from API
+                    const qrUrl = data.qrCode || data.qr;
+                    
+                    await conn.sendMessage(from, {
+                        image: { url: qrUrl },
+                        caption: `*📱 SCAN QR CODE*\n\n` +
+                                `Number: ${phoneNumber}\n` +
+                                `API: https://abdulrhim.onrender.com\n\n` +
+                                `Session will be generated after scanning`
+                    }, { quoted: mek });
+                    
+                    await reply(`📲 *QR Code Sent!*\nScan with WhatsApp to generate session.`);
+                    
+                } else if (data.otp || data.code) {
+                    // OTP method
+                    const otpCode = data.otp || data.code;
+                    
+                    await reply(`📲 *OTP METHOD*\n\n` +
+                               `Number: ${phoneNumber}\n` +
+                               `OTP Code: *${otpCode}*\n\n` +
+                               `Enter this code in WhatsApp\n` +
+                               `Session will be generated automatically`);
+                    
+                } else {
+                    // Unknown response format
+                    await reply(`✅ *API Response Received*\n\n` +
+                               `Status: ${data.status || 'Success'}\n` +
+                               `Message: ${data.message || 'No session ID received'}\n\n` +
+                               `Please check the API response format.`);
+                }
+                
+            } else {
+                // API returned error
+                const errorMsg = response.data?.message || 'Unknown API error';
+                throw new Error(`API Error: ${errorMsg}`);
+            }
+            
+        } catch (apiError) {
+            console.error('API Error:', apiError);
+            
+            let errorMessage = `❌ *API CALL FAILED*\n\n`;
+            
+            if (apiError.code === 'ECONNREFUSED') {
+                errorMessage += `Cannot connect to session server.\n`;
+                errorMessage += `Server: https://abdulrhim.onrender.com\n`;
+                errorMessage += `Status: OFFLINE\n\n`;
+            } else if (apiError.code === 'ETIMEDOUT') {
+                errorMessage += `Request timeout (90 seconds).\n`;
+                errorMessage += `Server might be busy.\n\n`;
+            } else if (apiError.response) {
+                // Server responded with error
+                const status = apiError.response.status;
+                errorMessage += `HTTP Status: ${status}\n`;
+                
+                if (status === 400) {
+                    errorMessage += `Bad request. Check number format.\n`;
+                } else if (status === 404) {
+                    errorMessage += `API endpoint not found.\n`;
+                } else if (status === 429) {
+                    errorMessage += `Too many requests. Try again later.\n`;
+                } else if (status === 500) {
+                    errorMessage += `Server internal error.\n`;
+                }
+                
+                if (apiError.response.data) {
+                    errorMessage += `Message: ${JSON.stringify(apiError.response.data)}\n`;
+                }
+            } else {
+                errorMessage += `Error: ${apiError.message}\n`;
+            }
+            
+            errorMessage += `\n*🔄 TRY ALTERNATIVE METHODS:*\n`;
+            errorMessage += `1. ${prefix}pair qr (QR Code)\n`;
+            errorMessage += `2. ${prefix}pair direct (Direct Link)\n`;
+            errorMessage += `3. Visit: https://abdulrhim.onrender.com/pair\n`;
+            errorMessage += `4. Contact: ${config.OWNER_NAME || 'RAHEEM-CM'}`;
+            
+            await reply(errorMessage);
+        }
+        
+    } catch (error) {
+        console.error('Pair command error:', error);
+        await reply(`❌ *COMMAND ERROR*\n\n${error.message}\n\nUse ${prefix}pair for help.`);
+    }
+});
+
+// Cleanup old pairings every hour
+setInterval(() => {
+    const now = Date.now();
+    for (const [id, data] of activePairings.entries()) {
+        if (now - data.timestamp > 7200000) { // 2 hours
+            activePairings.delete(id);
+        }
+    }
+}, 3600000); // Every hour
