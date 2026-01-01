@@ -32,7 +32,7 @@ const defaultSettings = {
     
     // STICKER PATHS - WEKA HAPA STICKER ZAKO
     scaryStickers: [
-        '../assets/wanteds',      // STICKER YAKO YA WANTED
+        '../assets/STK-20260101-WA0081.webp',      // STICKER YAKO YA WANTED
         '../assets/wanted.json',      // AU HII KAMA NI JSON
         'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp', // Fallback 1
         'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp',   // Fallback 2
