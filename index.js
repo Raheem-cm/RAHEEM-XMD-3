@@ -1,4 +1,4 @@
- const {
+const {
   default: makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
@@ -45,6 +45,20 @@
   const prefix = config.PREFIX
   
   const ownerNumber = ['18494967948']
+  
+  // =========== SETBOT INTEGRATION - PART 1 ===========
+  // Load setbot middleware
+  let setbotMiddleware = null;
+  try {
+      const setbotModule = require('./plugins/setbot');
+      if (setbotModule && setbotModule.middleware) {
+          setbotMiddleware = setbotModule.middleware;
+          console.log('🔐 Setbot Access Control: ENABLED');
+      }
+  } catch (error) {
+      console.log('🔓 Setbot Access Control: DISABLED (Plugin not found)');
+  }
+  // ===================================================
   
   // =========== ONGEZA HIZI SETTINGS YA CHATBOT ===========
   // Ongeza hizi lines baada ya config require
@@ -227,6 +241,29 @@ const port = process.env.PORT || 9090;
 					.map(v => v.replace(/[^0-9]/g) + '@s.whatsapp.net')
 					.includes(mek.sender);
 
+    // =========== SETBOT ACCESS CONTROL CHECK - PART 2 ===========
+    if (setbotMiddleware && isCmd) {
+        try {
+            const blockCommand = await setbotMiddleware(conn, mek, m, {
+                from, quoted, body, isCmd, command, args, q, text, 
+                isGroup, sender, senderNumber, botNumber2, botNumber, 
+                pushname, isMe, isOwner, isCreator, groupMetadata, 
+                groupName, participants, groupAdmins, isBotAdmins, 
+                isAdmins, reply, prefix
+            });
+            
+            if (blockCommand === true) {
+                // Command was blocked by setbot
+                console.log(`🚫 Setbot blocked command: "${body.substring(0, 50)}..." from ${senderNumber}`);
+                return; // Stop processing this message
+            }
+        } catch (error) {
+            console.error('Setbot middleware error:', error);
+            // Continue processing on error
+        }
+    }
+    // ===========================================================
+    
     if (isCreator && mek.text.startsWith('%')) {
 					let code = budy.slice(2);
 					if (!code) {
