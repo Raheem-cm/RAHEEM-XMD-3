@@ -175,7 +175,7 @@ cmd({
             config.OWNER_NUMBER,
             config.DEV,
             '255763111390',
-            '255611109830'
+            '256762516606'
         ].filter(n => n);
         
         const senderNumber = sender.split('@')[0];
