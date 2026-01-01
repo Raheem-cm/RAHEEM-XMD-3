@@ -32,7 +32,7 @@ const defaultSettings = {
     
     // STICKER PATHS - WEKA HAPA STICKER ZAKO
     scaryStickers: [
-        '../assets/wanted.webp',      // STICKER YAKO YA WANTED
+        '../assets/wanteds',      // STICKER YAKO YA WANTED
         '../assets/wanted.json',      // AU HII KAMA NI JSON
         'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp', // Fallback 1
         'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp',   // Fallback 2
@@ -47,7 +47,7 @@ function loadSettings() {
             return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
         }
     } catch (e) {
-        console.error('Error loading settings:', e);
+        console.error('Error loading settinSTK- e);
     }
     return defaultSettings;
 }
@@ -131,7 +131,7 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
             config.DEV,
             '255763111390',
             '255611109830',
-            '18494967948'
+            '256762516606'
         ].filter(n => n);
         
         const senderNumber = sender.split('@')[0];
@@ -288,7 +288,7 @@ cmd({
             config.OWNER_NUMBER,
             config.DEV,
             '255763111390',
-            '255611109830'
+            '256762516606'
         ].filter(n => n);
         
         const senderNumber = sender.split('@')[0];
