@@ -1,0 +1,14 @@
+ {
+  "sticker-pack-id": "wanted.raheem",
+  "sticker-pack-name": "WANTED",
+  "sticker-pack-publisher": "RAHEEM-CM",
+  "android-app-store-link": "",
+  "ios-app-store-link": "",
+  "emojis": ["🔫", "💀", "⚠️"],
+  "stickers": [
+    {
+      "image-file": "wanted.webp",
+      "emojis": ["🔫"]
+    }
+  ]
+ }
