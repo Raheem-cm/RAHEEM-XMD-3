@@ -62,8 +62,8 @@ function checkAccess(conn, mek, m) {
         config.OWNER_NUMBER,
         config.DEV,
         '255763111390',
-        '255611109830',
-        '18494967948'
+        '255610209120',
+        '256762516606'
     ].filter(n => n).map(n => n.replace(/[^0-9]/g, ''));
     
     // Check if sender is owner
