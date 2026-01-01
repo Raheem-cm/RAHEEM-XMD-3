@@ -6,7 +6,7 @@ const axios = require('axios');
 // Store settings
 const SETTINGS_FILE = path.join(__dirname, '../setbot_settings.json');
 
-// Default settings - KALI ZAIDI!
+// Default settings - KALI ZAIDI NA VIDEO!
 const defaultSettings = {
     enabled: false,
     warningMode: true,
@@ -15,7 +15,7 @@ const defaultSettings = {
     blockedUsers: [],
     scareLevel: 'extreme',
     
-    // MESSAGES ZA KUTISHA
+    // WARNING MESSAGES
     warningMessages: [
         `⚠️ *UNAUTHORIZED ACCESS DETECTED!* ⚠️\n\n` +
         `👁️ *YOUR ACTIVITY IS BEING MONITORED*\n` +
@@ -30,13 +30,14 @@ const defaultSettings = {
         `*DO NOT TEST ME AGAIN!*`
     ],
     
-    // STICKER PATHS - WEKA HAPA STICKER ZAKO
-    scaryStickers: [
-        '../assets/STK-20260101-WA0081.webp',      // STICKER YAKO YA WANTED
-        '../assets/wanted.json',      // AU HII KAMA NI JSON
-        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp', // Fallback 1
-        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp',   // Fallback 2
-        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/18.webp'  // Fallback 3
+    // VIDEO YA KUTISHA KABLA YA AUTO-BLOCK
+    scaryVideo: 'https://files.catbox.moe/rmk8y2.mp4', // VIDEO YAKO YA KUTISHA
+    
+    // STICKERS ZA WARNING ZA KWANZA
+    warningStickers: [
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/17.webp',
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp',
+        'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Police/18.webp'
     ]
 };
 
@@ -47,7 +48,7 @@ function loadSettings() {
             return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
         }
     } catch (e) {
-        console.error('Error loading settinSTK- e);
+        console.error('Error loading settings:', e);
     }
     return defaultSettings;
 }
@@ -66,58 +67,49 @@ function saveSettings(settings) {
 // Initialize settings
 let settings = loadSettings();
 
-// Function ya kutuma sticker - IMPROVED!
-async function sendScarySticker(conn, sender, warningNumber) {
+// Function ya kutuma STICKER (kwa warning ya kwanza)
+async function sendWarningSticker(conn, sender) {
     try {
-        let stickerSent = false;
+        // Chagua random sticker
+        const stickerIndex = Math.floor(Math.random() * settings.warningStickers.length);
+        const stickerUrl = settings.warningStickers[stickerIndex];
         
-        // JARIBU STICKER ZAKO KWAANZA
-        for (const stickerPath of settings.scaryStickers) {
-            try {
-                // Check if local file exists
-                if (stickerPath.startsWith('../') || stickerPath.startsWith('./')) {
-                    const fullPath = path.join(__dirname, stickerPath);
-                    if (fs.existsSync(fullPath)) {
-                        // Read local sticker file
-                        const stickerBuffer = fs.readFileSync(fullPath);
-                        await conn.sendMessage(sender, {
-                            sticker: stickerBuffer
-                        });
-                        stickerSent = true;
-                        console.log(`✅ Sent local sticker: ${stickerPath}`);
-                        break;
-                    }
-                } 
-                // Jaribu URL
-                else if (stickerPath.startsWith('http')) {
-                    await conn.sendMessage(sender, {
-                        sticker: { url: stickerPath }
-                    });
-                    stickerSent = true;
-                    console.log(`✅ Sent URL sticker: ${stickerPath}`);
-                    break;
-                }
-            } catch (stickerError) {
-                console.log(`❌ Failed to send sticker ${stickerPath}:`, stickerError.message);
-                // Continue to next sticker
-            }
-        }
-        
-        // Fallback kama stickers zote zimeshindwa
-        if (!stickerSent) {
-            // Send text as fallback
-            await conn.sendMessage(sender, {
-                text: `🔫 *BANG!* 🔫\n` +
-                      `⚠️ *Security Violation Detected!*`
-            });
-        }
-        
+        await conn.sendMessage(sender, {
+            sticker: { url: stickerUrl }
+        });
+        return true;
     } catch (error) {
         console.error('Sticker sending error:', error);
+        return false;
     }
 }
 
-// MIDDLEWARE - KALI ZAIDI!
+// Function ya kutuma VIDEO YA KUTISHA (kabla ya auto-block)
+async function sendScaryVideo(conn, sender) {
+    try {
+        console.log(`📹 Sending scary video to ${sender}`);
+        
+        await conn.sendMessage(sender, {
+            video: { url: settings.scaryVideo },
+            caption: `🔫 *TERMINATION IN PROGRESS...* 🔫`,
+            gifPlayback: false
+        });
+        return true;
+    } catch (error) {
+        console.error('Video sending error:', error);
+        
+        // Fallback kama video imeshindwa - tuma sticker badala yake
+        try {
+            await conn.sendMessage(sender, {
+                sticker: { url: 'https://raw.githubusercontent.com/WhatsApp/stickers/main/Android/Skull/1.webp' }
+            });
+        } catch (e) {}
+        
+        return false;
+    }
+}
+
+// MIDDLEWARE - NA VIDEO YA KUTISHA!
 module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, reply }) => {
     try {
         // Skip if not a command or setbot is off
@@ -131,7 +123,7 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
             config.DEV,
             '255763111390',
             '255611109830',
-            '256762516606'
+            '18494967948'
         ].filter(n => n);
         
         const senderNumber = sender.split('@')[0];
@@ -145,10 +137,6 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
         // Check if user is already blocked
         if (settings.blockedUsers.includes(sender)) {
             // Send blocked message
-            await sendScarySticker(conn, sender, 'blocked');
-            
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
             await conn.sendMessage(sender, {
                 text: `🚫 *YOU ARE PERMANENTLY BLOCKED!*\n\n` +
                       `⛔ *ACCESS DENIED FOREVER*\n` +
@@ -163,69 +151,102 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
         settings.warningCount[sender] = (settings.warningCount[sender] || 0) + 1;
         const warningNumber = settings.warningCount[sender];
         
-        // ========== TUMA STICKER KABLA YA WARNING ==========
-        await sendScarySticker(conn, sender, warningNumber);
-        
-        // Delay kidogo kwa dramatic effect
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // ========== TUMA WARNING MESSAGE ==========
+        // ========== PROCESS BASED ON WARNING NUMBER ==========
         let warningMsg = '';
+        let shouldSendVideo = false;
         let shouldBlock = false;
         
         if (warningNumber === 1) {
-            // First warning
-            warningMsg = `🔫 *SECURITY VIOLATION!* 🔫\n\n` +
-                        `⚠️ *FIRST WARNING!*\n` +
+            // FIRST WARNING - TUMA STICKER
+            await sendWarningSticker(conn, sender);
+            
+            // Delay kidogo
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            warningMsg = `🔫 *FIRST WARNING!* 🔫\n\n` +
+                        `⚠️ *Security Violation Detected!*\n` +
                         `📱 *Violator:* ${senderNumber}\n` +
-                        `👁️ *You are being watched*\n` +
-                        `📝 *Command attempted:* ${body.substring(0, 30)}...\n\n` +
-                        `🚨 *NEXT ATTEMPT = PERMANENT BLOCK!*\n\n` +
-                        `❌ *STOP USING THIS BOT NOW!*`;
+                        `📝 *Command:* ${body.substring(0, 30)}...\n` +
+                        `👁️ *You are being monitored*\n\n` +
+                        `🚨 *NEXT ATTEMPT = VIDEO WARNING + AUTO-BLOCK!*\n\n` +
+                        `❌ *STOP NOW OR FACE CONSEQUENCES!*`;
         } 
-        else if (warningNumber >= 2) {
-            // SECOND WARNING = AUTO-BLOCK!
+        else if (warningNumber === 2) {
+            // SECOND WARNING - TUMA VIDEO KABLA YA BLOCK!
+            shouldSendVideo = true;
+            shouldBlock = true;
+            
             warningMsg = `💀 *FINAL WARNING VIOLATED!* 💀\n\n` +
                         `📱 *Violator:* ${senderNumber}\n` +
-                        `⛔ *Violations:* ${warningNumber}\n` +
-                        `🔫 *Action:* PERMANENTLY BLOCKED\n` +
-                        `🚫 *You can no longer use this bot*\n\n` +
-                        `*BLOCK REASON:* Exceeded warning limit`;
-            
+                        `⛔ *Violations:* 2/2\n` +
+                        `🔫 *Action:* TERMINATION SEQUENCE ACTIVATED\n` +
+                        `📹 *Sending termination video...*\n\n` +
+                        `*YOU HAVE BEEN WARNED TWICE!*`;
+        }
+        else if (warningNumber >= 3) {
+            // ALREADY SHOULD BE BLOCKED, BUT JUST IN CASE
             shouldBlock = true;
+            warningMsg = `⛔ *AUTO-BLOCK ACTIVATED!* ⛔\n\n` +
+                        `📱 *Violator:* ${senderNumber}\n` +
+                        `💀 *Violations:* ${warningNumber}\n` +
+                        `🚫 *Status:* PERMANENTLY BLACKLISTED\n\n` +
+                        `*BLOCK REASON:* Exceeded maximum warnings`;
         }
         
-        // Send the warning/block message
+        // ========== SEND WARNING MESSAGE ==========
         await conn.sendMessage(sender, { text: warningMsg });
+        
+        // ========== SEND SCARY VIDEO KABLA YA BLOCK ==========
+        if (shouldSendVideo) {
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Delay for dramatic effect
+            
+            console.log(`🎬 Sending termination video to ${senderNumber}`);
+            await sendScaryVideo(conn, sender);
+            
+            // Wait for video to be seen
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        }
         
         // ========== AUTO-BLOCK KAMA WARNING 2 AU ZAIDI ==========
         if (shouldBlock) {
             try {
+                console.log(`⛔ Auto-blocking ${senderNumber}...`);
+                
                 // 1. Block on WhatsApp
                 await conn.updateBlockStatus(sender, 'block');
                 
                 // 2. Add to blocked list
                 settings.blockedUsers.push(sender);
                 
-                // 3. Send final scary message
+                // 3. Send final termination message
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 await conn.sendMessage(sender, {
-                    text: `⛔ *YOU HAVE BEEN TERMINATED!* ⛔\n\n` +
+                    text: `⛔ *TERMINATION COMPLETE!* ⛔\n\n` +
                           `🔫 *ACCESS PERMANENTLY REVOKED*\n` +
                           `💀 *YOUR NUMBER IS NOW BLACKLISTED*\n` +
-                          `🚫 *ALL FUTURE ATTEMPTS WILL FAIL*\n\n` +
-                          `👮 *GOODBYE FOREVER!*\n` +
+                          `🚫 *ALL FUTURE ATTEMPTS WILL FAIL*\n` +
+                          `📞 *WhatsApp: BLOCKED*\n` +
+                          `🤖 *Bot: BLOCKED*\n\n` +
                           `*Violations:* ${warningNumber}\n` +
-                          `*Block time:* ${new Date().toLocaleString()}`
+                          `*Termination time:* ${new Date().toLocaleString()}\n` +
+                          `*Reason:* Security policy violation`
                 });
                 
-                // 4. Send another sticker for final effect
-                await new Promise(resolve => setTimeout(resolve, 500));
-                await sendScarySticker(conn, sender, 'final');
+                console.log(`✅ Successfully blocked ${senderNumber}`);
                 
             } catch (blockError) {
                 console.error('Auto-block failed:', blockError);
+                
+                // Try alternative blocking method
+                try {
+                    settings.blockedUsers.push(sender);
+                    await conn.sendMessage(sender, {
+                        text: `⚠️ *BLOCK ATTEMPT FAILED BUT YOU ARE BLACKLISTED!*\n\n` +
+                              `🚫 *Your number is recorded in blacklist*\n` +
+                              `⛔ *Bot commands are permanently disabled for you*`
+                    });
+                } catch (e) {}
             }
         }
         
@@ -243,11 +264,12 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
                 notifyMsg += `🕒 *Time:* ${new Date().toLocaleString()}\n\n`;
                 
                 if (shouldBlock) {
-                    notifyMsg += `🔒 *Action:* AUTO-BLOCKED USER\n`;
+                    notifyMsg += `🔫 *Action:* AUTO-BLOCK ACTIVATED\n`;
+                    notifyMsg += `📹 *Video sent:* ${shouldSendVideo ? '✅ YES' : '❌ NO'}\n`;
                     notifyMsg += `⛔ *Status:* PERMANENTLY BLACKLISTED`;
                 } else {
-                    notifyMsg += `⚠️ *Action:* Warning sent\n`;
-                    notifyMsg += `🚨 *Next violation:* AUTO-BLOCK`;
+                    notifyMsg += `⚠️ *Action:* Warning ${warningNumber} sent\n`;
+                    notifyMsg += `🚨 *Next violation:* VIDEO + AUTO-BLOCK`;
                 }
                 
                 await conn.sendMessage(owner, { text: notifyMsg });
@@ -273,12 +295,12 @@ module.exports.middleware = async (conn, mek, m, { from, sender, body, isCmd, re
 cmd({
     pattern: "setbot",
     alias: ["botaccess", "lockbot", "security"],
-    desc: "Extreme bot security - 2 warnings then block!",
+    desc: "Extreme bot security with scary video termination!",
     category: "owner",
     filename: __filename,
-    use: '<on/off/status/block/unblock/list>',
+    use: '<on/off/status/block/unblock/list/test>',
     fromMe: true,
-    react: "🔫"
+    react: "🎬"
 }, async (conn, mek, m, { from, sender, reply, args, text, prefix }) => {
     try {
         const config = require('../config');
@@ -288,7 +310,7 @@ cmd({
             config.OWNER_NUMBER,
             config.DEV,
             '255763111390',
-            '256762516606'
+            '255611109830'
         ].filter(n => n);
         
         const senderNumber = sender.split('@')[0];
@@ -298,7 +320,7 @@ cmd({
         
         if (!isOwner) {
             // Send scary response to non-owner
-            await sendScarySticker(conn, sender, 'unauthorized');
+            await sendWarningSticker(conn, sender);
             
             await conn.sendMessage(sender, {
                 text: `🔫 *OWNER COMMAND ONLY!* 🔫\n\n` +
@@ -313,9 +335,9 @@ cmd({
         // HELP MENU
         if (!text || text === 'help') {
             const helpMsg = `
-*🔫 SETBOT EXTREME SECURITY*
+*🎬 SETBOT EXTREME SECURITY WITH VIDEO*
 
-*Military-grade bot protection!*
+*Military-grade bot protection with scary termination video!*
 
 *📌 COMMANDS:*
 • \`${prefix}setbot on\` - Arm security system
@@ -325,17 +347,21 @@ cmd({
 • \`${prefix}setbot unblock <num>\` - Unblock user
 • \`${prefix}setbot list\` - List blocked users
 • \`${prefix}setbot reset <num>\` - Reset warnings
-• \`${prefix}setbot test\` - Test security
+• \`${prefix}setbot test\` - Test security system
+• \`${prefix}setbot video\` - Test termination video
 
-*⚡ SECURITY RULES:*
-1️⃣ First violation: Warning + Sticker
-2️⃣ Second violation: AUTO-BLOCK + Blacklist
+*⚡ SECURITY SEQUENCE:*
+1️⃣ First violation: Warning sticker
+2️⃣ Second violation: SCARY VIDEO → AUTO-BLOCK
 ⛔ Blocked permanently from bot & WhatsApp
+
+*🎬 TERMINATION VIDEO:*
+${settings.scaryVideo}
 
 *🔫 CURRENT STATUS:*
 • System: ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}
 • Blocked: ${settings.blockedUsers.length} user(s)
-• Stickers: ${settings.scaryStickers.length} loaded
+• Video: ${settings.scaryVideo ? '✅ LOADED' : '❌ MISSING'}
 `;
             return reply(helpMsg);
         }
@@ -348,18 +374,15 @@ cmd({
             settings.enabled = true;
             saveSettings(settings);
             
-            // Send confirmation with sticker
-            await sendScarySticker(conn, sender, 'armed');
-            
-            await reply(`🔫 *SECURITY SYSTEM ARMED!*\n\n` +
+            await reply(`🎬 *SECURITY SYSTEM ARMED!*\n\n` +
                        `⚠️ *Status:* LOCKED & LOADED\n` +
-                       `💀 *Intruders will face consequences*\n` +
-                       `🚨 *Auto-block after 2 warnings*\n` +
-                       `⛔ *Permanent blacklisting enabled*\n\n` +
-                       `*WARNING TO INTRUDERS:*\n` +
-                       `• Sticker sent immediately\n` +
-                       `• 2 warnings then block\n` +
-                       `• WhatsApp blocking enabled`);
+                       `🔫 *Intruders will face consequences*\n` +
+                       `📹 *Termination video ready*\n` +
+                       `⛔ *Auto-block after 2 warnings*\n\n` +
+                       `*TERMINATION SEQUENCE:*\n` +
+                       `1. Warning 1: Sticker\n` +
+                       `2. Warning 2: Scary Video → AUTO-BLOCK\n` +
+                       `3. Permanent blacklisting`);
             return;
         }
         
@@ -382,14 +405,20 @@ cmd({
             const blockedCount = settings.blockedUsers.length;
             const warningCount = Object.keys(settings.warningCount).length;
             
-            let statusMsg = `*🔫 SETBOT SECURITY STATUS*\n\n`;
+            let statusMsg = `*🎬 SETBOT SECURITY STATUS*\n\n`;
             statusMsg += `⚡ *System:* ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}\n`;
             statusMsg += `🚨 *Auto-block:* ${settings.autoBlock ? '✅ ACTIVE' : '❌ INACTIVE'}\n`;
             statusMsg += `⛔ *Blacklisted:* ${blockedCount} user(s)\n`;
             statusMsg += `⚠️ *Active Warnings:* ${warningCount}\n`;
-            statusMsg += `🔫 *Stickers:* ${settings.scaryStickers.length} loaded\n\n`;
+            statusMsg += `🎬 *Termination Video:* ${settings.scaryVideo ? '✅ LOADED' : '❌ MISSING'}\n\n`;
             
-            // Show recently blocked (last 3)
+            // Show video info
+            if (settings.scaryVideo) {
+                statusMsg += `*📹 VIDEO URL:*\n`;
+                statusMsg += `${settings.scaryVideo.substring(0, 50)}...\n\n`;
+            }
+            
+            // Show recently blocked
             if (blockedCount > 0) {
                 statusMsg += `*🚫 RECENTLY TERMINATED:*\n`;
                 const recent = settings.blockedUsers.slice(-3).reverse();
@@ -402,25 +431,97 @@ cmd({
                 statusMsg += `\n`;
             }
             
-            // Show potential violators
-            const violators = Object.entries(settings.warningCount)
+            // Show users with 1 warning
+            const riskUsers = Object.entries(settings.warningCount)
                 .filter(([jid, count]) => count === 1 && !settings.blockedUsers.includes(jid))
                 .slice(0, 3);
             
-            if (violators.length > 0) {
+            if (riskUsers.length > 0) {
                 statusMsg += `*⚠️ USERS AT RISK (1 warning):*\n`;
-                violators.forEach(([jid, count]) => {
+                riskUsers.forEach(([jid, count]) => {
                     const num = jid.split('@')[0];
-                    statusMsg += `• ${num} - Next violation = BLOCK\n`;
+                    statusMsg += `• ${num} - Next = VIDEO + BLOCK\n`;
                 });
             }
             
             statusMsg += `\n*Quick Commands:*\n`;
-            statusMsg += `\`${prefix}setbot list\` - View all blocked\n`;
-            statusMsg += `\`${prefix}setbot on/off\` - Toggle security\n`;
-            statusMsg += `\`${prefix}setbot test\` - Test system`;
+            statusMsg += `\`${prefix}setbot test\` - Test warning system\n`;
+            statusMsg += `\`${prefix}setbot video\` - Test termination video\n`;
+            statusMsg += `\`${prefix}setbot list\` - View blacklist`;
             
             await reply(statusMsg);
+            return;
+        }
+        
+        // ====== TEST VIDEO ======
+        if (command === 'video' || command === 'testvideo') {
+            await reply(`🎬 *TESTING TERMINATION VIDEO...*\n\n` +
+                       `Sending scary video to owner...`);
+            
+            try {
+                await sendScaryVideo(conn, sender);
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                await reply(`✅ *TERMINATION VIDEO TEST COMPLETE!*\n\n` +
+                           `🎬 Video: ✅ SENT\n` +
+                           `🔫 Effect: ✅ SCARY\n` +
+                           `⏱️ Duration: ✅ GOOD\n\n` +
+                           `*Intruders will receive this video before being blocked!*`);
+            } catch (videoError) {
+                await reply(`❌ *VIDEO TEST FAILED!*\n\n` +
+                           `Error: ${videoError.message}\n\n` +
+                           `*Check video URL in settings:*\n` +
+                           `${settings.scaryVideo}`);
+            }
+            return;
+        }
+        
+        // ====== TEST SYSTEM ======
+        if (command === 'test') {
+            await reply(`🔫 *TESTING SECURITY SYSTEM...*\n\n` +
+                       `Simulating intruder sequence...`);
+            
+            // Test warning 1
+            await sendWarningSticker(conn, sender);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await conn.sendMessage(sender, {
+                text: `⚠️ *TEST: FIRST WARNING*\n\n` +
+                      `🔫 Sticker: ✅ SENT\n` +
+                      `📝 Warning: ✅ SENT\n` +
+                      `🚨 Next: VIDEO + AUTO-BLOCK\n\n` +
+                      `*This is a simulation of warning 1*`
+            });
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Test warning 2 (with video)
+            await reply(`🎬 *TESTING TERMINATION SEQUENCE...*\n\n` +
+                       `Simulating final warning with video...`);
+            
+            await sendScaryVideo(conn, sender);
+            
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            await conn.sendMessage(sender, {
+                text: `💀 *TEST: TERMINATION SEQUENCE*\n\n` +
+                      `🎬 Video: ✅ SENT\n` +
+                      `⛔ Block: ✅ SIMULATED\n` +
+                      `🚫 Blacklist: ✅ ACTIVATED\n\n` +
+                      `*This is a simulation of the auto-block sequence*\n` +
+                      `*Real intruders would be permanently blocked!*`
+            });
+            
+            await reply(`✅ *SECURITY SYSTEM TEST COMPLETE!*\n\n` +
+                       `🔫 Warning System: ✅ OPERATIONAL\n` +
+                       `🎬 Video System: ✅ OPERATIONAL\n` +
+                       `⛔ Auto-block: ✅ READY\n\n` +
+                       `*Intruders will face:*\n` +
+                       `1. Warning sticker\n` +
+                       `2. Scary termination video\n` +
+                       `3. Permanent blacklist`);
             return;
         }
         
@@ -437,34 +538,36 @@ cmd({
             
             // Check if already blocked
             if (!settings.blockedUsers.includes(targetJid)) {
+                // Send termination video first
+                await sendScaryVideo(conn, targetJid);
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
                 // Add to blocked list
                 settings.blockedUsers.push(targetJid);
-                settings.warningCount[targetJid] = 2; // Mark as violated twice
+                settings.warningCount[targetJid] = 2;
                 saveSettings(settings);
                 
                 // Block in WhatsApp
                 try {
                     await conn.updateBlockStatus(targetJid, 'block');
-                } catch (e) {
-                    console.log('WhatsApp block failed:', e.message);
-                }
+                } catch (e) {}
                 
-                // Send termination message to user
-                await sendScarySticker(conn, targetJid, 'manual-block');
-                
+                // Send termination message
                 await conn.sendMessage(targetJid, {
                     text: `⛔ *MANUALLY TERMINATED BY ADMIN!* ⛔\n\n` +
                           `🔫 *ACCESS PERMANENTLY REVOKED*\n` +
                           `💀 *ADMIN HAS BLACKLISTED YOU*\n` +
+                          `🎬 *Termination video sent*\n` +
                           `🚫 *ALL FUTURE ATTEMPTS WILL FAIL*\n\n` +
                           `*Reason:* Manual termination by owner\n` +
                           `*Time:* ${new Date().toLocaleString()}`
                 });
                 
-                await reply(`✅ *USER TERMINATED MANUALLY!*\n\n` +
+                await reply(`✅ *USER TERMINATED WITH VIDEO!*\n\n` +
                            `🔫 *Target:* ${targetJid.split('@')[0]}\n` +
+                           `🎬 *Video sent:* ✅ YES\n` +
                            `💀 *Status:* PERMANENTLY BLACKLISTED\n` +
-                           `🚫 *Cannot use bot anymore*\n` +
                            `👮 *WhatsApp block attempted*`);
             } else {
                 await reply(`ℹ️ *User already terminated*\n\n` +
@@ -525,11 +628,11 @@ cmd({
         if (command === 'list') {
             if (settings.blockedUsers.length === 0) {
                 return reply(`✅ *Blacklist is empty!*\n\n` +
-                           `No users are currently blocked.\n` +
+                           `No users are currently terminated.\n` +
                            `Peace mode activated. 🕊️`);
             }
             
-            let listMsg = `*🚫 BLACKLISTED USERS*\n\n`;
+            let listMsg = `*🚫 TERMINATED USERS*\n\n`;
             listMsg += `Total terminated: ${settings.blockedUsers.length}\n\n`;
             
             settings.blockedUsers.forEach((jid, index) => {
@@ -537,8 +640,8 @@ cmd({
                 const warnings = settings.warningCount[jid] || 2;
                 listMsg += `${index + 1}. ${num}\n`;
                 listMsg += `   ⚠️ Violations: ${warnings}\n`;
-                listMsg += `   🔒 Status: TERMINATED\n`;
-                listMsg += `   ⛔ WhatsApp: BLOCKED\n\n`;
+                listMsg += `   🎬 Video sent: ✅ YES\n`;
+                listMsg += `   🔒 Status: TERMINATED\n\n`;
             });
             
             listMsg += `*Commands:*\n`;
@@ -584,7 +687,7 @@ cmd({
             resetMsg += `🔄 *Previous warnings:* ${warnings}\n`;
             
             if (wasBlocked) {
-                resetMsg += `🔓 *Was:* BLACKLISTED (now removed)\n`;
+                resetMsg += `🔓 *Was:* TERMINATED (now pardoned)\n`;
                 resetMsg += `🤝 *Status:* FULL ACCESS RESTORED`;
                 
                 // Notify user
@@ -592,7 +695,7 @@ cmd({
                     await conn.sendMessage(targetJid, {
                         text: `🔄 *YOUR RECORD HAS BEEN CLEARED!*\n\n` +
                               `✅ *Admin has reset your warnings*\n` +
-                              `🔓 *Blacklist removed*\n` +
+                              `🔓 *Termination revoked*\n` +
                               `🤝 *Full access restored*\n\n` +
                               `*Please use the bot responsibly.*`
                     });
@@ -606,41 +709,9 @@ cmd({
             return;
         }
         
-        // ====== TEST ======
-        if (command === 'test') {
-            await reply(`🔫 *TESTING SECURITY SYSTEM...*\n\n` +
-                       `Sending test sticker & warning...`);
-            
-            // Test sticker
-            await sendScarySticker(conn, sender, 'test');
-            
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Test warning
-            await conn.sendMessage(sender, {
-                text: `⚠️ *TEST WARNING - SYSTEM ACTIVE!* ⚠️\n\n` +
-                      `🔫 Sticker: ✅ SENT\n` +
-                      `🚨 Warning: ✅ SENT\n` +
-                      `💀 Auto-block: ✅ READY\n` +
-                      `⛔ Blacklist: ✅ ACTIVE\n\n` +
-                      `*Security Status:* ${settings.enabled ? '🔒 ARMED' : '🔓 DISARMED'}\n` +
-                      `*Intruders will face:*\n` +
-                      `1. Warning sticker\n` +
-                      `2. Final warning\n` +
-                      `3. AUTO-BLOCK & BLACKLIST`
-            });
-            
-            await reply(`✅ *SECURITY TEST COMPLETE!*\n\n` +
-                       `🔫 System: ✅ OPERATIONAL\n` +
-                       `🚨 Response: ✅ IMMEDIATE\n` +
-                       `💀 Threat level: ✅ EXTREME\n\n` +
-                       `Intruders beware! 2 warnings = BLOCKED!`);
-            return;
-        }
-        
         // ====== INVALID ======
         await reply(`❌ *Invalid command!*\n\n` +
-                   `Use: ${prefix}setbot help for commands.`);
+                   `Use: \`${prefix}setbot help\` for commands.`);
 
     } catch (error) {
         console.error('Setbot command error:', error);
