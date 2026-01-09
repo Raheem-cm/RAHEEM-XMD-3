@@ -287,7 +287,7 @@ cmd({
         await conn.sendMessage(
             from,
             {
-                video: { url: "https://files.catbox.moe/8s7lxh.jpg" }, // Picha yako hapa
+                image: { url: "https://files.catbox.moe/8s7lxh.jpg" }, // Picha yako hapa
                 caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
