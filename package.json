@@ -9,7 +9,7 @@
     "restart": "pm2 restart RAHEEM-XMD-3"
   },
   "dependencies": {
-   "@whiskeysockets/baileys": "npm:baileys-pro@0.0.5",
+   "@whiskeysockets/baileys": "npm:angularsockets",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@dark-yasiya/yt-dl.js": "1.0.5",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
