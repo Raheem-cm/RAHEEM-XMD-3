@@ -276,7 +276,7 @@ cmd({
 ┃ ✧ .happy
 ┃ ✧ .wink
 ┃ ✧ .poke
-┃ ✧ .dance
+┃ ✧ .https
 ┃ ✧ .cringe
 ╰──────────────┈
 
@@ -287,7 +287,7 @@ cmd({
         await conn.sendMessage(
             from,
             {
-                video: { url: "https://files.catbox.moe/uegr1b.mp4" }, // Picha yako hapa
+                video: { url: "https://files.catbox.moe/8s7lxh.jpg" }, // Picha yako hapa
                 caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
