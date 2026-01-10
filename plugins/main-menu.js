@@ -3,13 +3,13 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Show bottom menu",
+    desc: "Show interactive list menu",
     category: "menu2",
-    react: "🔥",
+    react: "📑",
     filename: __filename
 }, async (conn, mek, m, { from, pushName }) => {
     try {
-        const bodyText = `👋 *Welcome ${pushName || "User"}*\n\n🤖 *${config.BOT_NAME || "RAHEEM-XMD"}*\n⚡ Fast • Smart • Powerful\n\nSelect a category below to explore my features:`;
+        const bodyText = `👋 *Hello ${pushName || "User"}*\n\nWelcome to *${config.BOT_NAME}*.\nClick the button below to view all available command categories.`;
 
         const message = {
             interactiveMessage: {
@@ -25,24 +25,37 @@ cmd({
                 nativeFlowMessage: {
                     buttons: [
                         {
-                            name: "quick_reply",
+                            name: "single_select",
                             buttonParamsJson: JSON.stringify({
-                                display_text: "📜 ALL MENU",
-                                id: ".allmenu"
-                            })
-                        },
-                        {
-                            name: "quick_reply",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "📥 DOWNLOAD",
-                                id: ".download"
-                            })
-                        },
-                        {
-                            name: "quick_reply",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "👥 GROUP",
-                                id: ".groupmenu"
+                                title: "TAP TO SELECT ITEM",
+                                sections: [
+                                    {
+                                        title: "💎 MAIN CATEGORIES",
+                                        rows: [
+                                            { title: "All Menu", rowId: ".allmenu", description: "View all commands list" },
+                                            { title: "Bot Info", rowId: ".alive", description: "Check bot status & uptime" }
+                                        ]
+                                    },
+                                    {
+                                        title: "📥 DOWNLOADER",
+                                        rows: [
+                                            { title: "Social Media", rowId: ".downloadmenu", description: "FB, TikTok, Insta downloads" },
+                                            { title: "YouTube Tools", rowId: ".ytmenu", description: "Download MP3 & MP4" }
+                                        ]
+                                    },
+                                    {
+                                        title: "👥 GROUP & ADMIN",
+                                        rows: [
+                                            { title: "Group Management", rowId: ".groupmenu", description: "Admin control commands" }
+                                        ]
+                                    },
+                                    {
+                                        title: "🤖 AI TOOLS",
+                                        rows: [
+                                            { title: "ChatGPT / AI", rowId: ".aimenu", description: "Advanced AI assistants" }
+                                        ]
+                                    }
+                                ]
                             })
                         }
                     ],
@@ -50,7 +63,6 @@ cmd({
             }
         };
 
-        // Tunatuma kama viewOnce ili ionekane vizuri kwenye matoleo yote
         await conn.relayMessage(from, {
             viewOnceMessage: {
                 message: message
@@ -59,6 +71,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ System Error: Buttons are not supported on this version of WhatsApp." }, { quoted: mek });
+        await conn.sendMessage(from, { text: "❌ Error: Your WhatsApp version may not support list menus." }, { quoted: mek });
     }
 });
