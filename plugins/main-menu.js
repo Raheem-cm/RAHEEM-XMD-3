@@ -3,82 +3,77 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Show professional interactive menu",
+    desc: "Show professional English menu",
     category: "menu2",
-    react: "🚀",
+    react: "⭐",
     filename: __filename
 }, async (conn, mek, m, { from, pushname, reply }) => {
     try {
-        const header = `
-*╭━━〔 ${config.BOT_NAME || 'RAHEEM-XMD-V3'} 〕━━┈*
+        // High-quality formatted menu text
+        const menuText = `
+*╭━━〔 ${config.BOT_NAME || 'RAHEEM-XMD'} 〕━━┈*
 ┃ 
 ┃ 👤 *USER:* ${pushname}
-┃ 🛠️ *PREFIX:* ${config.PREFIX}
+┃ 📍 *PREFIX:* ${config.PREFIX}
 ┃ 🎛️ *MODE:* ${config.MODE}
-┃ ⚡ *SPEED:* 0.45ms
+┃ ⏳ *UPTIME:* ${process.uptime().toFixed(0)}s
 ┃ 📂 *COMMANDS:* 150+
 ┃
 *╰━━━━━━━━━━━━━━━━━━━━━┈*
 
-*Hello ${pushname},* Select a category below to view my commands. I am an advanced WhatsApp assistant designed to make your life easier!`;
+*Hello ${pushname}, use the commands below:*
 
-        const sections = [
-            {
-                title: "💎 TOP CATEGORIES",
-                rows: [
-                    { title: "All Commands", rowId: ".allmenu", description: "View every command available" },
-                    { title: "Main System", rowId: ".mainmenu", description: "Bot status and info commands" }
-                ]
-            },
-            {
-                title: "📥 MEDIA & DOWNLOADS",
-                rows: [
-                    { title: "Social Media", rowId: ".downloadmenu", description: "Download FB, TikTok, Insta, etc." },
-                    { title: "YouTube Tools", rowId: ".ytmenu", description: "MP3, MP4 and Search tools" }
-                ]
-            },
-            {
-                title: "👥 GROUP MANAGEMENT",
-                rows: [
-                    { title: "Admin Tools", rowId: ".groupmenu", description: "Kick, Add, Promote, Mute" }
-                ]
-            },
-            {
-                title: "🤖 ARTIFICIAL INTELLIGENCE",
-                rows: [
-                    { title: "AI Tools", rowId: ".aimenu", description: "ChatGPT, GPT-4, Imagine AI" }
-                ]
-            }
-        ];
+*🏠 MAIN MENU*
+✧ .ping | .alive | .owner | .repo
 
-        // Sending the Message with "View Menu" Button
-        await conn.sendMessage(from, {
-            image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
-            caption: header,
-            footer: "© 2026 RAHEEM-XMD SYSTEMS",
-            buttons: [
-                { buttonId: '.owner', buttonText: { displayText: '👤 OWNER' }, type: 1 },
-                { buttonId: '.ping', buttonText: { displayText: '⚡ SPEED' }, type: 1 }
-            ],
-            headerType: 4,
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                externalAdReply: {
-                    title: "RAHEEM-XMD MULTIDEVICE",
-                    body: "Professional WhatsApp Bot",
-                    mediaType: 1,
-                    sourceUrl: "https://github.com/YourRepo",
-                    thumbnailUrl: "https://files.catbox.moe/8s7lxh.jpg",
-                    renderLargerThumbnail: true,
-                    showAdAttribution: true
+*📥 DOWNLOADS*
+✧ .song | .video | .fb | .tiktok
+✧ .insta | .ytmp3 | .ytmp4 | .apk
+
+*👥 GROUP TOOLS*
+✧ .kick | .add | .promote | .mute
+✧ .tagall | .hidetag | .link
+
+*🤖 AI & TOOLS*
+✧ .ai | .gpt4 | .imagine | .trt
+✧ .sticker | .fancy | .ebase64
+
+*🎉 FUN & ANIME*
+✧ .hack | .ship | .waifu | .joke
+
+> 💻 *Powered by RAHEEM-XMD-V3*
+`;
+
+        await conn.sendMessage(
+            from,
+            {
+                image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
+                caption: menuText,
+                contextInfo: {
+                    mentionedJid: [m.sender],
+                    forwardingScore: 999,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363399470975987@newsletter',
+                        newsletterName: "RAHEEM-XMD OFFICIAL",
+                        serverMessageId: 1
+                    },
+                    externalAdReply: {
+                        title: `RAHEEM-XMD V3: ${pushname}'s Panel`,
+                        body: "Select a command to begin",
+                        mediaType: 1,
+                        sourceUrl: "https://github.com/YourRepoLink", // Put your link here
+                        thumbnailUrl: "https://files.catbox.moe/8s7lxh.jpg",
+                        renderLargerThumbnail: true,
+                        showAdAttribution: true
+                    }
                 }
-            }
-        }, { quoted: mek });
+            },
+            { quoted: mek }
+        );
 
     } catch (e) {
         console.log(e);
-        reply("❌ Error generating menu.");
+        reply("❌ Menu Error: " + e.message);
     }
 });
