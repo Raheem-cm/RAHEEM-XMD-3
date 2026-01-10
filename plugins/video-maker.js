@@ -1,12 +1,134 @@
 const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
-const { exec, spawn } = require('child_process');
+const { exec } = require('child_process');
 const { promisify } = require('util');
-const axios = require('axios');
 
 const execAsync = promisify(exec);
 
+// ==================== CONFIG ====================
+const CONFIG = {
+    videoWidth: 640,
+    videoHeight: 480,
+    duration: 8, // seconds
+    tempDir: './temp_video_maker',
+    fontSize: 48,
+    fontColor: 'white',
+    bgColor: 'blue'
+};
+
+// ==================== UTILITIES ====================
+function createTempDir() {
+    if (!fs.existsSync(CONFIG.tempDir)) {
+        fs.mkdirSync(CONFIG.tempDir, { recursive: true });
+    }
+}
+
+function cleanOldFiles() {
+    if (fs.existsSync(CONFIG.tempDir)) {
+        const files = fs.readdirSync(CONFIG.tempDir);
+        const now = Date.now();
+        
+        files.forEach(file => {
+            const filePath = path.join(CONFIG.tempDir, file);
+            try {
+                const stats = fs.statSync(filePath);
+                // Delete files older than 1 hour
+                if (now - stats.mtimeMs > 3600000) {
+                    fs.unlinkSync(filePath);
+                }
+            } catch (e) {
+                // Ignore errors
+            }
+        });
+    }
+}
+
+// ==================== FFMPEG CHECK ====================
+async function checkFFmpeg() {
+    try {
+        await execAsync('ffmpeg -version');
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+// ==================== VIDEO CREATION ====================
+async function createVideo(text, style = 1) {
+    try {
+        createTempDir();
+        
+        const timestamp = Date.now();
+        const outputFile = path.join(CONFIG.tempDir, `video_${timestamp}.mp4`);
+        
+        // Define styles
+        const styles = {
+            1: { bg: '0x1E90FF', text: 'white' }, // DodgerBlue
+            2: { bg: '0xDC143C', text: 'white' }, // Crimson
+            3: { bg: '0x32CD32', text: 'black' }, // LimeGreen
+            4: { bg: '0xFFD700', text: 'black' }, // Gold
+            5: { bg: '0x8A2BE2', text: 'white' }, // BlueViolet
+            6: { bg: '0x000000', text: 'white' }, // Black
+            7: { bg: '0xFFFFFF', text: 'black' }, // White
+            8: { bg: '0xFF69B4', text: 'white' }  // HotPink
+        };
+        
+        const selected = styles[style] || styles[1];
+        
+        // Escape text for shell
+        const safeText = text.replace(/'/g, "'\\''");
+        
+        // Build FFmpeg command
+        const cmd = `ffmpeg -f lavfi -i color=c=${selected.bg}:s=${CONFIG.videoWidth}x${CONFIG.videoHeight}:d=${CONFIG.duration} ` +
+                   `-vf "drawtext=text='${safeText}':fontcolor=${selected.text}:fontsize=${CONFIG.fontSize}:x=(w-text_w)/2:y=(h-text_h)/2:box=1:boxcolor=black@0.5:boxborderw=5" ` +
+                   `-c:v libx264 -pix_fmt yuv420p -y "${outputFile}"`;
+        
+        console.log('Executing:', cmd.substring(0, 100) + '...');
+        
+        await execAsync(cmd, { timeout: 30000 });
+        
+        // Verify video was created
+        if (fs.existsSync(outputFile) && fs.statSync(outputFile).size > 1024) {
+            return outputFile;
+        } else {
+            throw new Error('Video file not created or too small');
+        }
+        
+    } catch (error) {
+        console.error('Video creation error:', error);
+        throw error;
+    }
+}
+
+// ==================== FALLBACK METHOD ====================
+async function createFallbackVideo(text) {
+    try {
+        createTempDir();
+        
+        const timestamp = Date.now();
+        const outputFile = path.join(CONFIG.tempDir, `fallback_${timestamp}.mp4`);
+        
+        // Simple text file as fallback
+        const textFile = path.join(CONFIG.tempDir, `text_${timestamp}.txt`);
+        fs.writeFileSync(textFile, `🎬 VIDEO PROMO\n\n${text}\n\n✅ Created by Video Maker\n⏱️ Duration: ${CONFIG.duration}s`);
+        
+        // Create a simple video from image (if we had one) or just use text
+        // For now, we'll create a blank video with text overlay
+        const cmd = `ffmpeg -f lavfi -i color=c=blue:s=640x480:d=5 ` +
+                   `-vf "drawtext=text='${text.replace(/'/g, "'\\''")}':fontcolor=white:fontsize=36:x=(w-text_w)/2:y=(h-text_h)/2" ` +
+                   `-c:v libx264 -pix_fmt yuv420p -y "${outputFile}"`;
+        
+        await execAsync(cmd, { timeout: 15000 });
+        
+        return outputFile;
+    } catch (error) {
+        console.error('Fallback video error:', error);
+        return null;
+    }
+}
+
+// ==================== MAIN COMMAND ====================
 cmd({
     pattern: "videomake",
     desc: "Tengeneza video ya promosheni kwa maandishi",
@@ -15,355 +137,163 @@ cmd({
     filename: __filename
 }, async (conn, mek, m, { from, text, args, reply, prefix }) => {
     try {
-        // ============ SEHEMU YA 1: MENU YA MSINGI ============
-        if (!text) {
-            const menu = `
+        // ============ SHOW HELP ============
+        if (!text || text === 'help' || text === 'menu') {
+            const helpMessage = `
 🎬 *VIDEO MAKER PRO* 🎬
 
-*TUMIA:* ${prefix}videomake <maandishi>
-*AU:* ${prefix}videomake style <namba> <maandishi>
+*TUMIA:*
+${prefix}videomake <maandishi>
+${prefix}videomake style <namba> <maandishi>
 
-📝 *MIFANO:*
+*MIFANO:*
 • ${prefix}videomake OFA LA LEO 50%
-• ${prefix}videomake style 1 NUNUA SASA
-• ${prefix}videomake style 2 KARIBU KWETU
-• ${prefix}videomake style 3 BIDHAA BORA
+• ${prefix}videomake style 2 NUNUA SASA
+• ${prefix}videomake style 3 KARIBU KWETU
 
-🎨 *MITINDO YA VIDEO:*
-1️⃣ Classic Red - Nyekundu/Nyeupe
-2️⃣ Modern Blue - Gradient ya Bluu  
-3️⃣ Luxury Gold - Dhahabu/Nyeusi
-4️⃣ Neon Purple - Mwanga wa Rangi
-5️⃣ Nature Green - Kijani/Kahawia
-6️⃣ Tech Orange - Machungwa/Kijivu
-7️⃣ Elegant Pink - Pinki/Nyeupe
-8️⃣ Dark Mode - Nyeusi/Kijani
+*MITINDO YA VIDEO (1-8):*
+1️⃣ Blue Background
+2️⃣ Red Background  
+3️⃣ Green Background
+4️⃣ Gold Background
+5️⃣ Purple Background
+6️⃣ Black Background
+7️⃣ White Background
+8️⃣ Pink Background
 
-⚙️ *MORE OPTIONS:*
-• ${prefix}videomake setup - Maelekezo ya kusanidi
-• ${prefix}videomake test - Test kama ffmpeg iko
-• ${prefix}videomake list - Angalia mitindo yote
+*VIDEO INFO:*
+📏 Size: 640x480
+⏱️ Duration: 8 seconds
+🎨 Colors: Auto selection
+⚡ Speed: Fast processing
 
-🔥 *VIDEO SPECS:*
-📏 Ukubwa: 1280x720 (HD)
-⏱️ Muda: 8-10 sekunde
-🎵 Sauti: Auto background music
-🎬 Format: MP4 (High Quality)
+*COMMANDS ZA ZIADA:*
+• ${prefix}videocheck - Angalia kama ffmpeg iko
+• ${prefix}videosetup - Maelekezo ya kusanidi
 
-*"Tengeneza video yako kwa sekunde 10!"* 🚀
+🔧 *Developed by RAHEEM-XMD*
             `;
             
-            return await conn.sendMessage(from, {
-                image: { 
-                    url: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=1074&q=80"
-                },
-                caption: menu.trim()
-            }, { quoted: mek });
+            return await reply(helpMessage);
         }
-
-        // ============ SEHEMU YA 2: SETUP GUIDE ============
-        if (text === 'setup' || text === 'help') {
-            const setup = `
+        
+        // ============ CHECK FFMPEG ============
+        if (text === 'check' || text === 'test') {
+            const hasFFmpeg = await checkFFmpeg();
+            if (hasFFmpeg) {
+                return await reply('✅ FFmpeg iko installed na inafanya kazi vizuri!\n\nSasa unaweza kutengeneza video kwa: ' + prefix + 'videomake <maandishi>');
+            } else {
+                return await reply('❌ FFmpeg haipo! Tafadhali sakinisha ffmpeg kwanza:\n\n' +
+                    '*Termux:* `pkg install ffmpeg`\n' +
+                    '*Ubuntu:* `sudo apt install ffmpeg`\n' +
+                    '*Windows:* Download kutoka ffmpeg.org\n\n' +
+                    'Kisha tumia: ' + prefix + 'videomake setup');
+            }
+        }
+        
+        // ============ SETUP GUIDE ============
+        if (text === 'setup') {
+            const setupGuide = `
 🔧 *VIDEO MAKER SETUP GUIDE*
 
 *MUHIMU KUFANYA KABLA YA KUTUMIA:*
 
 1️⃣ *INSTALL FFMPEG:*
    • *Termux:* \`pkg install ffmpeg\`
-   • *Ubuntu:* \`sudo apt install ffmpeg\`
+   • *Ubuntu/Debian:* \`sudo apt install ffmpeg\`
    • *Windows:* Download kutoka ffmpeg.org
 
 2️⃣ *TEST FFMPEG:*
-   Tumae: ${prefix}videomake test
+   Tumae: ${prefix}videomake check
 
-3️⃣ *INSTALL DEPENDENCIES:*
-   \`npm install canvas axios\`
+3️⃣ *AUDIO (Optional):*
+   Hakuna haja ya audio files
 
-4️⃣ *AUDIO FILES:*
-   Background music inajitengeneza moja kwa moja!
+4️⃣ *FONTS (Optional):*
+   System fonts zitakuja moja kwa moja
 
-*COMMANDS ZA MSINGI:*
-• ${prefix}videomake hello world
-• ${prefix}videomake style 2 promo ya soko
-• ${prefix}videomake style 3 ofa la leo
+*MATUMIZI:*
+1. Install ffmpeg
+2. Test kwa: ${prefix}videomake check
+3. Tengeneza video kwa: ${prefix}videomake hello world
 
-⚠️ *MUHIMU:* Hakikisha umesakinisha ffmpeg kwenye system yako!
+*TROUBLESHOOTING:*
+• Hakikisha ffmpeg iko kwenye PATH
+• Restart bot baada ya kusanidi ffmpeg
+• Tumia commands rahisi kwanza
+
+✅ *Kama ffmpeg iko, video maker itafanya kazi 100%!*
             `;
             
-            return await reply(setup);
+            return await reply(setupGuide);
         }
-
-        // ============ SEHEMU YA 3: TEST FFMPEG ============
-        if (text === 'test') {
-            try {
-                await execAsync('ffmpeg -version');
-                return await reply('✅ FFmpeg iko installed na inafanya kazi vizuri!\n\nSasa unaweza kutengeneza video.');
-            } catch (error) {
-                return await reply(`❌ FFmpeg haipo au haifanyi kazi!\n\nTafadhali sakinisha ffmpeg kwanza:\n\`pkg install ffmpeg\` (Termux)\n\`sudo apt install ffmpeg\` (Linux)`);
-            }
-        }
-
-        // ============ SEHEMU YA 4: LIST STYLES ============
-        if (text === 'list' || text === 'styles') {
-            const stylesList = `
-🎨 *VIDEO STYLES LIST*
-
-*Tumae:* ${prefix}videomake style <namba> <maandishi>
-
-1️⃣ *CLASSIC RED* 🔴
-   • Rangi: Nyekundu/Nyeupe
-   • Matumizi: Promotions za kawaida
-   • Example: ${prefix}videomake style 1 OFA LA LEO
-
-2️⃣ *MODERN BLUE* 🔵  
-   • Rangi: Gradient ya Bluu
-   • Matumizi: Biashara za kisasa
-   • Example: ${prefix}videomake style 2 NUNUA SASA
-
-3️⃣ *LUXURY GOLD* 🟡
-   • Rangi: Dhahabu/Nyeusi
-   • Matumizi: Bidhaa za hali ya juu
-   • Example: ${prefix}videomake style 3 BORA KABISA
-
-4️⃣ *NEON PURPLE* 🟣
-   • Rangi: Mwanga wa Zambarau
-   • Matumizi: Matukio na sherehe
-   • Example: ${prefix}videomake style 4 TUFURAHIE
-
-5️⃣ *NATURE GREEN* 🟢
-   • Rangi: Kijani/Kahawia
-   • Matumizi: Bidhaa za asili
-   • Example: ${prefix}videomake style 5 ASILI BORA
-
-6️⃣ *TECH ORANGE* 🟠
-   • Rangi: Machungwa/Kijivu
-   • Matumizi: Teknolojia na apps
-   • Example: ${prefix}videomake style 6 APP MPYA
-
-7️⃣ *ELEGANT PINK* 💖
-   • Rangi: Pinki/Nyeupe
-   • Matumizi: Fashion na beauty
-   • Example: ${prefix}videomake style 7 MPYA SOKONI
-
-8️⃣ *DARK MODE* ⚫
-   • Rangi: Nyeusi/Kijani
-   • Matumizi: Gaming na tech
-   • Example: ${prefix}videomake style 8 GAME MPYA
-            `;
-            
-            return await reply(stylesList);
-        }
-
-        // ============ SEHEMU YA 5: PROCESS TEXT INPUT ============
-        await reply(`🎬 *Video inatengenezwa...*\n\n📝 Maandishi: "${text}"\n⏳ Tafadhali subiri 15 sekunde...`);
-
-        let style = 1;
-        let message = text;
         
-        // Check for style argument
+        // ============ PROCESS VIDEO REQUEST ============
+        await reply(`🎬 *Video inatengenezwa...*\n\n📝 Maandishi: "${text}"\n⏳ Tafadhali subiri 10 sekunde...`);
+        
+        // Check FFmpeg first
+        const hasFFmpeg = await checkFFmpeg();
+        if (!hasFFmpeg) {
+            return await reply('❌ FFmpeg haipo! Tafadhali sakinisha ffmpeg kwanza.\n\nTumae: ' + prefix + 'videomake setup');
+        }
+        
+        // Parse style and text
+        let style = 1;
+        let videoText = text;
+        
         const parts = text.split(' ');
         if (parts[0] === 'style' && parts[1] && !isNaN(parts[1])) {
             style = parseInt(parts[1]);
-            if (style < 1 || style > 8) style = 1;
-            message = parts.slice(2).join(' ');
+            if (style < 1) style = 1;
+            if (style > 8) style = 8;
+            videoText = parts.slice(2).join(' ');
             
-            if (!message) {
+            if (!videoText) {
                 return await reply(`❌ Tafadhali andika maandishi baada ya style!\n\nExample: ${prefix}videomake style 1 MAANDISHI YAKO`);
             }
         }
-
-        // ============ SEHEMU YA 6: CREATE VIDEO ============
-        const videoPath = await createPromoVideo(message, style);
+        
+        // Create video
+        let videoPath;
+        try {
+            videoPath = await createVideo(videoText, style);
+        } catch (error) {
+            console.error('Main video creation failed:', error);
+            videoPath = await createFallbackVideo(videoText);
+        }
         
         if (!videoPath) {
-            return await reply('❌ Samahani, video haikutengenezwa!\n\nSababu: FFmpeg haipo au imeshindwa.\n\nTumae: ' + prefix + 'videomake setup');
+            return await reply('❌ Samahani, video haikutengenezwa!\n\nSababu: FFmpeg ina shida au hakuna uwezo wa kutengeneza video.\n\nTumae: ' + prefix + 'videomake setup');
         }
-
-        // ============ SEHEMU YA 7: SEND VIDEO ============
+        
+        // Send video
         await conn.sendMessage(from, {
-            video: { url: videoPath },
-            caption: `🎬 *VIDEO PROMO*\n\n${message}\n\n✅ Imetengenezwa kikamilifu!\n🎨 Style: ${style}\n📏 Size: 1280x720 HD\n⏱️ Duration: 10 seconds\n\n*"Tumia kwa matangazo yako!"*`,
+            video: { 
+                url: videoPath 
+            },
+            caption: `🎬 *VIDEO PROMO*\n\n${videoText}\n\n✅ Imetengenezwa kikamilifu!\n🎨 Style: ${style}\n📏 Size: ${CONFIG.videoWidth}x${CONFIG.videoHeight}\n⏱️ Duration: ${CONFIG.duration}s\n\n*"Tumia kwa matangazo yako!"*`,
             gifPlayback: false
         }, { quoted: mek });
-
-        // ============ SEHEMU YA 8: CLEANUP ============
+        
+        // Cleanup after 30 seconds
         setTimeout(() => {
             try {
                 if (fs.existsSync(videoPath)) {
                     fs.unlinkSync(videoPath);
+                    console.log('Cleaned up video:', path.basename(videoPath));
                 }
             } catch (e) {
                 // Silent cleanup
             }
-        }, 30000); // Clean after 30 seconds
-
+        }, 30000);
+        
     } catch (error) {
-        console.error('Video maker error:', error);
+        console.error('Video maker command error:', error);
         await reply(`❌ Hitilafu: ${error.message}\n\nTumae: ${prefix}videomake setup kwa maelekezo`);
     }
 });
 
-// ============ SEHEMU YA 9: MAIN VIDEO CREATION FUNCTION ============
-async function createPromoVideo(text, style = 1) {
-    try {
-        // Create temp directory
-        const tempDir = './temp_videos';
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-
-        const timestamp = Date.now();
-        const outputPath = path.join(tempDir, `video_${timestamp}.mp4`);
-        
-        // Define styles
-        const styles = {
-            1: { bg: 'red', text: 'white', font: '72' },
-            2: { bg: 'blue', text: 'white', font: '68' },
-            3: { bg: 'gold', text: 'black', font: '70' },
-            4: { bg: 'purple', text: 'cyan', font: '65' },
-            5: { bg: 'green', text: 'brown', font: '66' },
-            6: { bg: 'orange', text: 'white', font: '64' },
-            7: { bg: 'pink', text: 'white', font: '62' },
-            8: { bg: 'black', text: 'lime', font: '60' }
-        };
-
-        const selectedStyle = styles[style] || styles[1];
-        
-        // Escape text for shell
-        const safeText = text.replace(/'/g, "'\\''").replace(/"/g, '\\"');
-        
-        // Split text into lines (max 2 lines)
-        const words = safeText.split(' ');
-        let line1 = '', line2 = '';
-        
-        if (words.length <= 4) {
-            line1 = safeText;
-        } else {
-            const mid = Math.floor(words.length / 2);
-            line1 = words.slice(0, mid).join(' ');
-            line2 = words.slice(mid).join(' ');
-        }
-
-        // Build FFmpeg command
-        let ffmpegCommand = `ffmpeg -f lavfi -i color=c=${selectedStyle.bg}:s=1280x720:d=10 `;
-        
-        if (line2) {
-            // Two lines of text
-            ffmpegCommand += `-vf "drawtext=text='${line1}':fontcolor=${selectedStyle.text}:fontsize=${selectedStyle.font}:x=(w-text_w)/2:y=(h-text_h*2)/3,`;
-            ffmpegCommand += `drawtext=text='${line2}':fontcolor=${selectedStyle.text}:fontsize=${selectedStyle.font}:x=(w-text_w)/2:y=(h+text_h)/3" `;
-        } else {
-            // Single line of text
-            ffmpegCommand += `-vf "drawtext=text='${line1}':fontcolor=${selectedStyle.text}:fontsize=${selectedStyle.font}:x=(w-text_w)/2:y=(h-text_h)/2" `;
-        }
-        
-        ffmpegCommand += `-c:v libx264 -pix_fmt yuv420p -y "${outputPath}"`;
-        
-        // Execute FFmpeg
-        await execAsync(ffmpegCommand);
-        
-        // Check if video was created
-        if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 1000) {
-            return outputPath;
-        }
-        
-        // If FFmpeg failed, try alternative method
-        return await createAlternativeVideo(text, selectedStyle, outputPath);
-        
-    } catch (error) {
-        console.error('Video creation error:', error);
-        return null;
-    }
-}
-
-// ============ SEHEMU YA 10: ALTERNATIVE METHOD (NO FFMPEG) ============
-async function createAlternativeVideo(text, style, outputPath) {
-    try {
-        // Try using canvas to create image, then convert to video
-        const { createCanvas } = require('canvas');
-        const canvas = createCanvas(1280, 720);
-        const ctx = canvas.getContext('2d');
-        
-        // Color mapping
-        const colorMap = {
-            red: '#FF0000', blue: '#0066CC', gold: '#FFD700', purple: '#800080',
-            green: '#008000', orange: '#FF6600', pink: '#FF69B4', black: '#000000',
-            white: '#FFFFFF', cyan: '#00FFFF', brown: '#8B4513', lime: '#00FF00'
-        };
-        
-        // Draw background
-        ctx.fillStyle = colorMap[style.bg] || '#0066CC';
-        ctx.fillRect(0, 0, 1280, 720);
-        
-        // Draw text
-        ctx.fillStyle = colorMap[style.text] || '#FFFFFF';
-        ctx.font = `bold ${style.font}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Split text
-        const words = text.split(' ');
-        if (words.length <= 4) {
-            ctx.fillText(text, 640, 360);
-        } else {
-            const mid = Math.floor(words.length / 2);
-            const line1 = words.slice(0, mid).join(' ');
-            const line2 = words.slice(mid).join(' ');
-            ctx.fillText(line1, 640, 280);
-            ctx.fillText(line2, 640, 440);
-        }
-        
-        // Save image
-        const tempDir = './temp_videos';
-        const imagePath = path.join(tempDir, `temp_${Date.now()}.png`);
-        const buffer = canvas.toBuffer('image/png');
-        fs.writeFileSync(imagePath, buffer);
-        
-        // Try to create video from image
-        try {
-            await execAsync(`ffmpeg -loop 1 -i "${imagePath}" -t 8 -c:v libx264 -pix_fmt yuv420p -y "${outputPath}"`);
-        } catch (e) {
-            // If still fails, return image instead
-            return imagePath;
-        }
-        
-        // Cleanup image
-        fs.unlinkSync(imagePath);
-        
-        return outputPath;
-        
-    } catch (error) {
-        console.error('Alternative video error:', error);
-        return null;
-    }
-}
-
-// ============ SEHEMU YA 11: AUTO CLEANUP ============
-setInterval(() => {
-    const tempDir = './temp_videos';
-    if (fs.existsSync(tempDir)) {
-        fs.readdir(tempDir, (err, files) => {
-            if (err) return;
-            
-            const now = Date.now();
-            files.forEach(file => {
-                const filePath = path.join(tempDir, file);
-                try {
-                    const stats = fs.statSync(filePath);
-                    // Delete files older than 1 hour
-                    if (now - stats.mtimeMs > 60 * 60 * 1000) {
-                        fs.unlinkSync(filePath);
-                    }
-                } catch (e) {
-                    // Ignore errors
-                }
-            });
-        });
-    }
-}, 30 * 60 * 1000); // Run every 30 minutes
-
-// ============ SEHEMU YA 12: BONUS COMMANDS ============
-
-// Quick video command
+// ==================== QUICK VIDEO COMMAND ====================
 cmd({
     pattern: "promo",
     desc: "Tengeneza video ya promosheni kwa haraka",
@@ -378,101 +308,114 @@ cmd({
     try {
         await reply(`⚡ *Inatengeneza video ya 5 sekunde...*`);
         
-        const tempDir = './temp_videos';
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
+        // Check FFmpeg
+        const hasFFmpeg = await checkFFmpeg();
+        if (!hasFFmpeg) {
+            return await reply('❌ FFmpeg haipo! Tafadhali sakinisha ffmpeg kwanza.\n\nTumae: .videomake setup');
         }
         
+        createTempDir();
         const timestamp = Date.now();
-        const outputPath = path.join(tempDir, `quick_${timestamp}.mp4`);
+        const outputFile = path.join(CONFIG.tempDir, `quick_${timestamp}.mp4`);
+        
+        // Create quick video
         const safeText = text.replace(/'/g, "'\\''");
+        const cmd = `ffmpeg -f lavfi -i color=c=black:s=480x360:d=5 ` +
+                   `-vf "drawtext=text='${safeText}':fontcolor=white:fontsize=32:x=(w-text_w)/2:y=(h-text_h)/2" ` +
+                   `-c:v libx264 -pix_fmt yuv420p -y "${outputFile}"`;
         
-        // Simple video with black background and white text
-        const command = `ffmpeg -f lavfi -i color=c=black:s=640x480:d=5 -vf "drawtext=text='${safeText}':fontcolor=white:fontsize=36:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -pix_fmt yuv420p -y "${outputPath}"`;
+        await execAsync(cmd, { timeout: 15000 });
         
-        await execAsync(command);
-        
-        // Send video
-        await conn.sendMessage(from, {
-            video: { url: outputPath },
-            caption: `⚡ *QUICK PROMO*\n\n${text}\n\n✅ Video imetengenezwa kwa sekunde 5!`
-        }, { quoted: mek });
-        
-        // Cleanup after 30 seconds
-        setTimeout(() => {
-            try {
-                if (fs.existsSync(outputPath)) {
-                    fs.unlinkSync(outputPath);
+        // Verify and send
+        if (fs.existsSync(outputFile) && fs.statSync(outputFile).size > 1024) {
+            await conn.sendMessage(from, {
+                video: { url: outputFile },
+                caption: `⚡ *QUICK PROMO*\n\n${text}\n\n✅ Video imetengenezwa kwa sekunde 5!`
+            }, { quoted: mek });
+            
+            // Cleanup
+            setTimeout(() => {
+                try {
+                    if (fs.existsSync(outputFile)) {
+                        fs.unlinkSync(outputFile);
+                    }
+                } catch (e) {
+                    // Silent
                 }
-            } catch (e) {
-                // Silent cleanup
-            }
-        }, 30000);
+            }, 30000);
+        } else {
+            await reply('❌ Video haikutengenezwa! Jaribu tena.');
+        }
         
     } catch (error) {
-        await reply('❌ Video haikutengenezwa! Tumae: ' + prefix + 'videomake setup');
+        console.error('Quick promo error:', error);
+        await reply('❌ Video haikutengenezwa! Tumae: .videomake setup');
     }
 });
 
-// Video with emoji support
+// ==================== SIMPLE TEST COMMAND ====================
 cmd({
-    pattern: "emojivid",
-    desc: "Tengeneza video na emojis",
+    pattern: "vidtest",
+    desc: "Test video maker na maandishi rahisi",
     category: "video",
-    react: "😎",
+    react: "🧪",
     filename: __filename
-}, async (conn, mek, m, { from, text, reply, prefix }) => {
-    if (!text) {
-        return await reply(`😎 *EMOJI VIDEO MAKER*\n\nTumae: ${prefix}emojivid <maandishi na emojis>\n\nExample: ${prefix}emojivid 🎉 OFA LA LEO 🎉`);
-    }
-    
-    await reply(`😎 *Inatengeneza video ya emojis...*`);
-    
+}, async (conn, mek, m, { from, reply }) => {
     try {
-        const tempDir = './temp_videos';
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
+        await reply('🧪 *Inatengeneza video ya test...*');
+        
+        const hasFFmpeg = await checkFFmpeg();
+        if (!hasFFmpeg) {
+            return await reply('❌ FFmpeg haipo! Sakinisha ffmpeg kwanza.');
         }
         
-        const timestamp = Date.now();
-        const outputPath = path.join(tempDir, `emoji_${timestamp}.mp4`);
-        const safeText = text.replace(/'/g, "'\\''");
+        createTempDir();
+        const outputFile = path.join(CONFIG.tempDir, `test_${Date.now()}.mp4`);
         
-        // Video with gradient background
-        const command = `ffmpeg -f lavfi -i color=c=0xFF6B6B:s=1280x720:d=8 -f lavfi -i color=c=0x4ECDC4:s=1280x720:d=8 -filter_complex "[0:v][1:v]blend=all_expr='A*(if(gte(T,4),1,T/4))+B*(if(gte(T,4),0,1-T/4))'[v]; [v]drawtext=text='${safeText}':fontcolor=white:fontsize=60:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -pix_fmt yuv420p -y "${outputPath}"`;
+        const cmd = `ffmpeg -f lavfi -i color=c=green:s=320x240:d=3 ` +
+                   `-vf "drawtext=text='TEST VIDEO':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2" ` +
+                   `-c:v libx264 -pix_fmt yuv420p -y "${outputFile}"`;
         
-        await execAsync(command);
+        await execAsync(cmd, { timeout: 10000 });
         
-        await conn.sendMessage(from, {
-            video: { url: outputPath },
-            caption: `😎 *EMOJI VIDEO*\n\n${text}\n\n✅ Imetengenezwa kikamilifu!`
-        }, { quoted: mek });
-        
-        // Cleanup
-        setTimeout(() => {
-            try {
-                if (fs.existsSync(outputPath)) {
-                    fs.unlinkSync(outputPath);
-                }
-            } catch (e) {
-                // Silent
-            }
-        }, 30000);
+        if (fs.existsSync(outputFile)) {
+            await conn.sendMessage(from, {
+                video: { url: outputFile },
+                caption: '🧪 *TEST VIDEO*\n\n✅ Video maker inafanya kazi!\n\nSasa unaweza kutengeneza video yako.'
+            }, { quoted: mek });
+            
+            setTimeout(() => {
+                try {
+                    if (fs.existsSync(outputFile)) {
+                        fs.unlinkSync(outputFile);
+                    }
+                } catch (e) {}
+            }, 20000);
+        } else {
+            await reply('❌ Test imeshindwa! Hakikisha ffmpeg iko installed.');
+        }
         
     } catch (error) {
-        await reply('❌ Samahani, video haikutengenezwa!');
+        console.error('Test error:', error);
+        await reply('❌ Test imeshindwa: ' + error.message);
     }
 });
 
-// ============ SEHEMU YA 13: PLUGIN LOAD MESSAGE ============
+// ==================== AUTO CLEANUP ====================
+setInterval(cleanOldFiles, 600000); // Clean every 10 minutes
+
+// ==================== INITIALIZATION ====================
 console.log(`
-╔═══════════════════════════════════════╗
-║         🎬 VIDEO MAKER PRO 🎬         ║
-╠═══════════════════════════════════════╣
-║ ✅ Plugin: video-maker.js             ║
-║ ✅ Status: Loaded Successfully        ║
-║ ✅ Commands: .videomake, .promo,      ║
-║            .emojivid                  ║
-║ ✅ Requirements: FFmpeg               ║
-╚═══════════════════════════════════════╝
+╔══════════════════════════════════════╗
+║        🎬 VIDEO MAKER PLUGIN 🎬       ║
+╠══════════════════════════════════════╣
+║ ✅ Loaded: video-maker.js           ║
+║ ✅ Commands: .videomake, .promo     ║
+║ ✅ Test Command: .vidtest           ║
+║ ✅ Temp Directory: ${CONFIG.tempDir}  ║
+╚══════════════════════════════════════╝
 `);
+
+// Initial cleanup
+createTempDir();
+cleanOldFiles();
