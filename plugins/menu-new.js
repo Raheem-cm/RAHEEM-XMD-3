@@ -3,77 +3,130 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu",
-    desc: "Modern minimalist menu",
+    desc: "Clean vertical command list",
     category: "menu",
-    react: "🌑",
+    react: "📑",
     filename: __filename
 }, async (conn, mek, m, { from, text }) => {
     try {
         
         const menu = `
-*${config.BOT_NAME || 'RAHEEM-XMD'}* — s y s t e m
-_Everything you need, simplified._
+*${config.BOT_NAME || 'RAHEEM-XMD'}* — _v1.0.0_
 
-── ``[ USER INFO ]`` ──
-  👤 *user:* @${m.sender.split('@')[0]}
-  ⚡ *status:* active
-  🛠️ *prefix:* ${config.PREFIX}
-  📂 *mode:* ${config.MODE}
+*〔 👤 USER INFO 〕*
+  ▫️ *user:* @${m.sender.split('@')[0]}
+  ▫️ *mode:* ${config.MODE}
+  ▫️ *prefix:* ${config.PREFIX}
 
-── ``[ MAIN ]`` ──
-  ▸ .ping  ▸ .speed  ▸ .alive
-  ▸ .uptime  ▸ .repo  ▸ .owner
-  ▸ .restart  ▸ .today  ▸ .id
-  ▸ .advice  ▸ .cs  ▸ .inde
-  ▸ .bffs  ▸ .cf
+*〔 🏠 MAIN 〕*
+  ┃ ◦ .ping
+  ┃ ◦ .speed
+  ┃ ◦ .alive
+  ┃ ◦ .uptime
+  ┃ ◦ .owner
+  ┃ ◦ .repo
+  ┃ ◦ .restart
+  ┃ ◦ .today
+  ┃ ◦ .id
 
-── ``[ DOWNLOAD ]`` ──
-  ▸ .fb  ▸ .tiktok  ▸ .insta
-  ▸ .twitter  ▸ .mediafire  ▸ .apk
-  ▸ .img  ▸ .pins  ▸ .spotify
-  ▸ .play  ▸ .audio  ▸ .video
-  ▸ .ytmp3  ▸ .ytmp4  ▸ .gdrive
-  ▸ .ssweb  ▸ .tiks
+*〔 📥 DOWNLOAD 〕*
+  ┃ ◦ .facebook
+  ┃ ◦ .tiktok
+  ┃ ◦ .instagram
+  ┃ ◦ .twitter
+  ┃ ◦ .mediafire
+  ┃ ◦ .apk
+  ┃ ◦ .img
+  ┃ ◦ .pins
+  ┃ ◦ .spotify
+  ┃ ◦ .play
+  ┃ ◦ .audio
+  ┃ ◦ .video
+  ┃ ◦ .ytmp3
+  ┃ ◦ .ytmp4
+  ┃ ◦ .gdrive
+  ┃ ◦ .tiks
 
-── ``[ GROUP ]`` ──
-  ▸ .kick  ▸ .add  ▸ .remove
-  ▸ .promote  ▸ .demote  ▸ .tagall
-  ▸ .hidetag  ▸ .mute  ▸ .unmute
-  ▸ .lock  ▸ .unlock  ▸ .link
-  ▸ .revoke  ▸ .setwelcome
+*〔 👥 GROUP 〕*
+  ┃ ◦ .kick
+  ┃ ◦ .add
+  ┃ ◦ .remove
+  ┃ ◦ .promote
+  ┃ ◦ .demote
+  ┃ ◦ .tagall
+  ┃ ◦ .hidetag
+  ┃ ◦ .mute
+  ┃ ◦ .unmute
+  ┃ ◦ .lock
+  ┃ ◦ .unlock
+  ┃ ◦ .link
+  ┃ ◦ .setwelcome
+  ┃ ◦ .setgoodbye
 
-── ``[ INTELLIGENCE ]`` ──
-  ▸ .ai  ▸ .gpt4  ▸ .meta
-  ▸ .blackbox  ▸ .bing  ▸ .luma
-  ▸ .imagine  ▸ .copilot
+*〔 🤖 AI & TOOLS 〕*
+  ┃ ◦ .ai
+  ┃ ◦ .gpt4
+  ┃ ◦ .meta
+  ┃ ◦ .blackbox
+  ┃ ◦ .bing
+  ┃ ◦ .imagine
+  ┃ ◦ .copilot
+  ┃ ◦ .luma
 
-── ``[ CONVERT ]`` ──
-  ▸ .sticker  ▸ .fancy  ▸ .tomp3
-  ▸ .tts  ▸ .trt  ▸ .url  ▸ .readmore
+*〔 🔄 CONVERT 〕*
+  ┃ ◦ .sticker
+  ┃ ◦ .fancy
+  ┃ ◦ .tomp3
+  ┃ ◦ .tts
+  ┃ ◦ .trt
+  ┃ ◦ .url
+  ┃ ◦ .base64
 
-── ``[ ENTERTAIN ]`` ──
-  ▸ .hack  ▸ .ship  ▸ .joke
-  ▸ .rate  ▸ .insult  ▸ .character
-  ▸ .waifu  ▸ .neko  ▸ .loli
+*〔 🎌 ANIME 〕*
+  ┃ ◦ .waifu
+  ┃ ◦ .neko
+  ┃ ◦ .loli
+  ┃ ◦ .naruto
+  ┃ ◦ .animenews
+  ┃ ◦ .foxgirl
 
-── ``[ REACTIONS ]`` ──
-  ▸ .hug  ▸ .kiss  ▸ .slap
-  ▸ .kill  ▸ .smile  ▸ .cry
-  ▸ .pat  ▸ .blush  ▸ .wink
+*〔 🎉 FUN & GAME 〕*
+  ┃ ◦ .hack
+  ┃ ◦ .ship
+  ┃ ◦ .rate
+  ┃ ◦ .joke
+  ┃ ◦ .insult
+  ┃ ◦ .character
+  ┃ ◦ .pickup
 
-── ``[ UTILITY ]`` ──
-  ▸ .weather  ▸ .news  ▸ .wiki
-  ▸ .calc  ▸ .pair  ▸ .yts  ▸ .logo
+*〔 💞 REACTIONS 〕*
+  ┃ ◦ .hug
+  ┃ ◦ .kiss
+  ┃ ◦ .slap
+  ┃ ◦ .kill
+  ┃ ◦ .smile
+  ┃ ◦ .cry
+  ┃ ◦ .pat
+  ┃ ◦ .blush
+
+*〔 📌 OTHERS 〕*
+  ┃ ◦ .weather
+  ┃ ◦ .news
+  ┃ ◦ .wikipedia
+  ┃ ◦ .calculate
+  ┃ ◦ .pair
+  ┃ ◦ .yts
+  ┃ ◦ .logo
 
 *──*
-> *powered by raheem tech*
+> *© raheem tech projects*
 `;
 
         await conn.sendMessage(
             from,
             {
                 image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
-                caption: menu,
+                caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
                     forwardingScore: 1,
@@ -90,6 +143,6 @@ _Everything you need, simplified._
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "system error." }, { quoted: mek });
+        await conn.sendMessage(from, { text: "❌ system failure." }, { quoted: mek });
     }
 });
