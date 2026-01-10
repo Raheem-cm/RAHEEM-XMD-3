@@ -42,7 +42,11 @@ async function shouldProcessCommand(conn, mek, sender) {
         null;
     
     const isOwner = ownerJid && sender === ownerJid;
-    const isCreator = sender.includes('18494967948') || sender.includes('255763111390');
+    
+    // Added +255 792 797 707 to creator list
+    const isCreator = sender.includes('18494967948') || 
+                      sender.includes('255763111390') || 
+                      sender.includes('255792797707');
     
     if (!isOwner && !isCreator) {
         return { allowed: false, reason: '❌ *This command is for the OWNER only!*' };
@@ -170,20 +174,17 @@ cmd({
 });
 
 // ==================== 4. COMMAND BLOCKING MIDDLEWARE ====================
-// This middleware checks every command to see if the bot is off
 const originalCommands = new Map();
 
 function initializeBotMiddleware(events) {
     const state = loadBotState();
     
-    // Clone original commands
     events.commands.forEach(cmd => {
         if (cmd.pattern && cmd.function) {
             originalCommands.set(cmd.pattern, cmd.function);
         }
     });
     
-    // Replace with wrapped function
     events.commands.forEach(cmd => {
         if (cmd.pattern && cmd.function) {
             const originalFunc = cmd.function;
@@ -197,23 +198,19 @@ function initializeBotMiddleware(events) {
                 const body = params.body || '';
                 const prefix = params.prefix || '.';
                 
-                // Allow bot control commands even when bot is off
                 const botCommands = ['bot', '.bot'];
                 const isBotCommand = botCommands.some(cmdStr => 
                     body.toLowerCase().startsWith(prefix + cmdStr)
                 );
                 
-                // If bot is disabled and not a bot control command, block it
                 if (!state.enabled && !isBotCommand) {
                     const from = mek.key.remoteJid;
                     if (from.endsWith('@g.us')) {
-                        // Silent block - no response
                         console.log(`Blocked command in group ${from} while bot is offline`);
                         return;
                     }
                 }
                 
-                // Otherwise, run original command
                 return originalFunc.apply(this, args);
             };
         }
@@ -223,7 +220,6 @@ function initializeBotMiddleware(events) {
 }
 
 // ==================== 5. AUTO-INITIALIZE MIDDLEWARE ====================
-// This will be called automatically
 setTimeout(() => {
     try {
         const events = require('../command');
@@ -237,18 +233,6 @@ setTimeout(() => {
 }, 3000);
 
 // ==================== 6. CLEANUP ON START ====================
-// Ensure the state file exists
 if (!fs.existsSync(BOT_STATE_FILE)) {
     saveBotState({ enabled: true });
 }
-
-console.log(`
-╔══════════════════════════════════╗
-║     🛡️ BOT CONTROL SYSTEM 🛡️     ║
-╠══════════════════════════════════╣
-║ ✅ Command: .bot on/off/status  ║
-║ ✅ File: bot_global_state.json  ║
-║ ✅ Access: Owner + Admin only   ║
-║ ✅ Scope: All groups            ║
-╚══════════════════════════════════╝
-`);
