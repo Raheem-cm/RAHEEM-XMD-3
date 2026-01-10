@@ -3,299 +3,84 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu",
-    desc: "Show all commands menu",
+    desc: "Modern minimalist menu",
     category: "menu",
-    react: "⭐",
+    react: "🌑",
     filename: __filename
 }, async (conn, mek, m, { from, text }) => {
     try {
         
-        const header = `
-╭━━〔 *${config.BOT_NAME || 'RAHEEM-XMD-3'}* 〕━━┈
-┃
-┃ 👤 *Owner:* ${config.OWNER_NAME}
-┃ 📍 *Prefix:* ${config.PREFIX}
-┃ 🎛️ *Mode:* ${config.MODE}
-┃ ⚡ *Vers:* 1.0.0
-┃
-╰━━━━━━━━━━━━━━━┈
-`;
+        const menu = `
+*${config.BOT_NAME || 'RAHEEM-XMD'}* — s y s t e m
+_Everything you need, simplified._
 
-        const menu = `${header}
-*╭──┈〔 🏠 MAIN 〕┈──*
-┃ ✧ .ping
-┃ ✧ .speed
-┃ ✧ .alive
-┃ ✧ .uptime
-┃ ✧ .owner
-┃ ✧ .repo
-┃ ✧ .menu
-┃ ✧ .restart
-┃ ✧ .today
-┃ ✧ .id
-┃ ✧ .advice
-┃ ✧ .cs
-┃ ✧ .inde
-┃ ✧ .bffs
-┃ ✧ .cf
-╰──────────────┈
+── ``[ USER INFO ]`` ──
+  👤 *user:* @${m.sender.split('@')[0]}
+  ⚡ *status:* active
+  🛠️ *prefix:* ${config.PREFIX}
+  📂 *mode:* ${config.MODE}
 
-*╭──┈〔 📥 DOWNLOAD 〕┈──*
-┃ ✧ .facebook
-┃ ✧ .tiktok
-┃ ✧ .instagram
-┃ ✧ .twitter
-┃ ✧ .mediafire
-┃ ✧ .apk
-┃ ✧ .img
-┃ ✧ .tt2
-┃ ✧ .pins
-┃ ✧ .apk2
-┃ ✧ .fb2
-┃ ✧ .pinterest
-┃ ✧ .spotify
-┃ ✧ .play4
-┃ ✧ .play2
-┃ ✧ .audio
-┃ ✧ .video
-┃ ✧ .video2
-┃ ✧ .ytmp3
-┃ ✧ .ytmp4
-┃ ✧ .song
-┃ ✧ .darama
-┃ ✧ .gdrive
-┃ ✧ .ssweb
-┃ ✧ .tiks
-╰──────────────┈
+── ``[ MAIN ]`` ──
+  ▸ .ping  ▸ .speed  ▸ .alive
+  ▸ .uptime  ▸ .repo  ▸ .owner
+  ▸ .restart  ▸ .today  ▸ .id
+  ▸ .advice  ▸ .cs  ▸ .inde
+  ▸ .bffs  ▸ .cf
 
-*╭──┈〔 👥 GROUP 〕┈──*
-┃ ✧ .grouplink
-┃ ✧ .kickall
-┃ ✧ .kickall2
-┃ ✧ .kickall3
-┃ ✧ .add
-┃ ✧ .remove
-┃ ✧ .kick
-┃ ✧ .promote
-┃ ✧ .demote
-┃ ✧ .dismiss
-┃ ✧ .revoke
-┃ ✧ .setgoodbye
-┃ ✧ .setwelcome
-┃ ✧ .delete
-┃ ✧ .getpic
-┃ ✧ .ginfo
-┃ ✧ .disappear
-┃ ✧ .allreq
-┃ ✧ .updategname
-┃ ✧ .updategdesc
-┃ ✧ .joinrequests
-┃ ✧ .senddm
-┃ ✧ .nikal
-┃ ✧ .mute
-┃ ✧ .unmute
-┃ ✧ .lockgc
-┃ ✧ .unlockgc
-┃ ✧ .invite
-┃ ✧ .tag
-┃ ✧ .hidetag
-┃ ✧ .tagall
-┃ ✧ .tagadmins
-╰──────────────┈
+── ``[ DOWNLOAD ]`` ──
+  ▸ .fb  ▸ .tiktok  ▸ .insta
+  ▸ .twitter  ▸ .mediafire  ▸ .apk
+  ▸ .img  ▸ .pins  ▸ .spotify
+  ▸ .play  ▸ .audio  ▸ .video
+  ▸ .ytmp3  ▸ .ytmp4  ▸ .gdrive
+  ▸ .ssweb  ▸ .tiks
 
-*╭──┈〔 🎉 FUN 〕┈──*
-┃ ✧ .shapar
-┃ ✧ .rate
-┃ ✧ .insult
-┃ ✧ .hack
-┃ ✧ .ship
-┃ ✧ .character
-┃ ✧ .pickup
-┃ ✧ .joke
-┃ ✧ .hrt
-┃ ✧ .hpy
-┃ ✧ .syd
-┃ ✧ .anger
-┃ ✧ .shy
-┃ ✧ .kiss
-┃ ✧ .mon
-┃ ✧ .cunfuzed
-┃ ✧ .setpp
-┃ ✧ .hand
-┃ ✧ .nikal
-┃ ✧ .hold
-┃ ✧ .hug
-┃ ✧ .hifi
-┃ ✧ .poke
-╰──────────────┈
+── ``[ GROUP ]`` ──
+  ▸ .kick  ▸ .add  ▸ .remove
+  ▸ .promote  ▸ .demote  ▸ .tagall
+  ▸ .hidetag  ▸ .mute  ▸ .unmute
+  ▸ .lock  ▸ .unlock  ▸ .link
+  ▸ .revoke  ▸ .setwelcome
 
-*╭──┈〔 👑 OWNER 〕┈──*
-┃ ✧ .owner
-┃ ✧ .menu
-┃ ✧ .menu2
-┃ ✧ .vv
-┃ ✧ .listcmd
-┃ ✧ .allmenu
-┃ ✧ .repo
-┃ ✧ .block
-┃ ✧ .unblock
-┃ ✧ .fullpp
-┃ ✧ .setpp
-┃ ✧ .restart
-┃ ✧ .shutdown
-┃ ✧ .updatecmd
-┃ ✧ .alive
-┃ ✧ .ping
-┃ ✧ .gjid
-┃ ✧ .jid
-╰──────────────┈
+── ``[ INTELLIGENCE ]`` ──
+  ▸ .ai  ▸ .gpt4  ▸ .meta
+  ▸ .blackbox  ▸ .bing  ▸ .luma
+  ▸ .imagine  ▸ .copilot
 
-*╭──┈〔 🤖 AI 〕┈──*
-┃ ✧ .ai
-┃ ✧ .gpt3
-┃ ✧ .gpt2
-┃ ✧ .gptmini
-┃ ✧ .gpt
-┃ ✧ .meta
-┃ ✧ .blackbox
-┃ ✧ .luma
-┃ ✧ .dj
-┃ ✧ .khan
-┃ ✧ .jawad
-┃ ✧ .gpt4
-┃ ✧ .bing
-┃ ✧ .imagine
-┃ ✧ .imagine2
-┃ ✧ .copilot
-╰──────────────┈
+── ``[ CONVERT ]`` ──
+  ▸ .sticker  ▸ .fancy  ▸ .tomp3
+  ▸ .tts  ▸ .trt  ▸ .url  ▸ .readmore
 
-*╭──┈〔 🎌 ANIME 〕┈──*
-┃ ✧ .fack
-┃ ✧ .truth
-┃ ✧ .dare
-┃ ✧ .dog
-┃ ✧ .awoo
-┃ ✧ .garl
-┃ ✧ .waifu
-┃ ✧ .neko
-┃ ✧ .megnumin
-┃ ✧ .maid
-┃ ✧ .loli
-┃ ✧ .animegirl
-┃ ✧ .animegirl1
-┃ ✧ .animegirl2
-┃ ✧ .animegirl3
-┃ ✧ .animegirl4
-┃ ✧ .animegirl5
-┃ ✧ .anime1
-┃ ✧ .anime2
-┃ ✧ .anime3
-┃ ✧ .anime4
-┃ ✧ .anime5
-┃ ✧ .animenews
-┃ ✧ .foxgirl
-┃ ✧ .naruto
-╰──────────────┈
+── ``[ ENTERTAIN ]`` ──
+  ▸ .hack  ▸ .ship  ▸ .joke
+  ▸ .rate  ▸ .insult  ▸ .character
+  ▸ .waifu  ▸ .neko  ▸ .loli
 
-*╭──┈〔 🔄 CONVERT 〕┈──*
-┃ ✧ .sticker
-┃ ✧ .sticker2
-┃ ✧ .emojimix
-┃ ✧ .fancy
-┃ ✧ .take
-┃ ✧ .tomp3
-┃ ✧ .tts
-┃ ✧ .trt
-┃ ✧ .base64
-┃ ✧ .unbase64
-┃ ✧ .binary
-┃ ✧ .dbinary
-┃ ✧ .tinyurl
-┃ ✧ .urldecode
-┃ ✧ .urlencode
-┃ ✧ .url
-┃ ✧ .repeat
-┃ ✧ .ask
-┃ ✧ .readmore
-╰──────────────┈
+── ``[ REACTIONS ]`` ──
+  ▸ .hug  ▸ .kiss  ▸ .slap
+  ▸ .kill  ▸ .smile  ▸ .cry
+  ▸ .pat  ▸ .blush  ▸ .wink
 
-*╭──┈〔 📌 OTHER 〕┈──*
-┃ ✧ .timenow
-┃ ✧ .date
-┃ ✧ .count
-┃ ✧ .calculate
-┃ ✧ .countx
-┃ ✧ .flip
-┃ ✧ .coinflip
-┃ ✧ .rcolor
-┃ ✧ .roll
-┃ ✧ .fact
-┃ ✧ .cpp
-┃ ✧ .rw
-┃ ✧ .pair
-┃ ✧ .pair2
-┃ ✧ .pair3
-┃ ✧ .fancy
-┃ ✧ .logo
-┃ ✧ .define
-┃ ✧ .news
-┃ ✧ .movie
-┃ ✧ .weather
-┃ ✧ .srepo
-┃ ✧ .insult
-┃ ✧ .save
-┃ ✧ .wikipedia
-┃ ✧ .gpass
-┃ ✧ .githubstalk
-┃ ✧ .yts
-┃ ✧ .ytv
-╰──────────────┈
+── ``[ UTILITY ]`` ──
+  ▸ .weather  ▸ .news  ▸ .wiki
+  ▸ .calc  ▸ .pair  ▸ .yts  ▸ .logo
 
-*╭──┈〔 💞 REACTIONS 〕┈──*
-┃ ✧ .bully
-┃ ✧ .cuddle
-┃ ✧ .cry
-┃ ✧ .hug
-┃ ✧ .awoo
-┃ ✧ .kiss
-┃ ✧ .lick
-┃ ✧ .pat
-┃ ✧ .smug
-┃ ✧ .bonk
-┃ ✧ .yeet
-┃ ✧ .blush
-┃ ✧ .smile
-┃ ✧ .wave
-┃ ✧ .highfive
-┃ ✧ .handhold
-┃ ✧ .nom
-┃ ✧ .bite
-┃ ✧ .glomp
-┃ ✧ .slap
-┃ ✧ .kill
-┃ ✧ .happy
-┃ ✧ .wink
-┃ ✧ .poke
-┃ ✧ .https
-┃ ✧ .cringe
-╰──────────────┈
-
-> 📜 **Total Commands:** 150+
-> ✅ **Use:** ${config.PREFIX}<command>
+*──*
+> *powered by raheem tech*
 `;
 
         await conn.sendMessage(
             from,
             {
-                image: { url: "https://files.catbox.moe/8s7lxh.jpg" }, // Picha yako hapa
-                caption: menu.trim(),
+                image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
+                caption: menu,
                 contextInfo: {
                     mentionedJid: [m.sender],
-                    forwardingScore: 999,
+                    forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363399470975987@newsletter',
-                        newsletterName: "RAHEEM-XMD",
+                        newsletterName: "R A H E E M - X M D",
                         serverMessageId: 1
                     }
                 }
@@ -305,6 +90,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ Menu error!" }, { quoted: mek });
+        await conn.sendMessage(from, { text: "system error." }, { quoted: mek });
     }
 });
