@@ -125,7 +125,7 @@ cmd({
         await conn.sendMessage(
             from,
             {
-                image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
+                video: { url: "https://files.catbox.moe/c08e2d.mp4" },
                 caption: menu.trim(),
                 contextInfo: {
                     mentionedJid: [m.sender],
