@@ -1,79 +1,51 @@
-const config = require('../config');
-const { cmd } = require('../command');
-
 cmd({
-    pattern: "menu2",
-    desc: "Show professional English menu",
-    category: "menu2",
-    react: "⭐",
+    pattern: "menu",
+    desc: "Show bottom menu",
+    category: "menu",
+    react: "🔥",
     filename: __filename
-}, async (conn, mek, m, { from, pushname, reply }) => {
+}, async (conn, mek, m, { from }) => {
     try {
-        // High-quality formatted menu text
-        const menuText = `
-*╭━━〔 ${config.BOT_NAME || 'RAHEEM-XMD'} 〕━━┈*
-┃ 
-┃ 👤 *USER:* ${pushname}
-┃ 📍 *PREFIX:* ${config.PREFIX}
-┃ 🎛️ *MODE:* ${config.MODE}
-┃ ⏳ *UPTIME:* ${process.uptime().toFixed(0)}s
-┃ 📂 *COMMANDS:* 150+
-┃
-*╰━━━━━━━━━━━━━━━━━━━━━┈*
 
-*Hello ${pushname}, use the commands below:*
+        const caption = `
+👋 *Welcome ${m.pushName || "User"}*
 
-*🏠 MAIN MENU*
-✧ .ping | .alive | .owner | .repo
+🤖 *${config.BOT_NAME}*
+⚡ Fast • Smart • Powerful
 
-*📥 DOWNLOADS*
-✧ .song | .video | .fb | .tiktok
-✧ .insta | .ytmp3 | .ytmp4 | .apk
-
-*👥 GROUP TOOLS*
-✧ .kick | .add | .promote | .mute
-✧ .tagall | .hidetag | .link
-
-*🤖 AI & TOOLS*
-✧ .ai | .gpt4 | .imagine | .trt
-✧ .sticker | .fancy | .ebase64
-
-*🎉 FUN & ANIME*
-✧ .hack | .ship | .waifu | .joke
-
-> 💻 *Powered by RAHEEM-XMD-V3*
+Chagua menu hapa chini 👇
 `;
 
-        await conn.sendMessage(
-            from,
+        const buttons = [
             {
-                image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
-                caption: menuText,
-                contextInfo: {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363399470975987@newsletter',
-                        newsletterName: "RAHEEM-XMD OFFICIAL",
-                        serverMessageId: 1
-                    },
-                    externalAdReply: {
-                        title: `RAHEEM-XMD V3: ${pushname}'s Panel`,
-                        body: "Select a command to begin",
-                        mediaType: 1,
-                        sourceUrl: "https://github.com/YourRepoLink", // Put your link here
-                        thumbnailUrl: "https://files.catbox.moe/8s7lxh.jpg",
-                        renderLargerThumbnail: true,
-                        showAdAttribution: true
-                    }
-                }
+                buttonId: `${config.PREFIX}allmenu`,
+                buttonText: { displayText: "📜 ALL MENU" },
+                type: 1
             },
-            { quoted: mek }
-        );
+            {
+                buttonId: `${config.PREFIX}download`,
+                buttonText: { displayText: "📥 DOWNLOAD" },
+                type: 1
+            },
+            {
+                buttonId: `${config.PREFIX}groupmenu`,
+                buttonText: { displayText: "👥 GROUP" },
+                type: 1
+            }
+        ];
+
+        const buttonMessage = {
+            image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
+            caption: caption,
+            footer: "© RAHEEM-XMD-3 • 2026",
+            buttons: buttons,
+            headerType: 4
+        };
+
+        await conn.sendMessage(from, buttonMessage, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        reply("❌ Menu Error: " + e.message);
+        await conn.sendMessage(from, { text: "❌ Menu error!" }, { quoted: mek });
     }
 });
