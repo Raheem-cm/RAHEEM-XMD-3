@@ -2,8 +2,8 @@ const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
-    pattern: "menu2",
-    desc: "Open bottom list menu",
+    pattern: "menu",
+    desc: "Open the modern list menu",
     category: "menu",
     react: "🔽",
     filename: __filename
@@ -11,49 +11,41 @@ cmd({
     try {
         const sections = [
             {
-                title: "🏠 NYUMBANI",
+                title: "🏠 HOME STATION",
                 rows: [
-                    { title: "Bot Status", rowId: `${config.PREFIX}ping`, description: "Angalia kasi ya bot" },
-                    { title: "Main Menu", rowId: `${config.PREFIX}menu`, description: "Commands zote hapa" }
+                    { title: "Main Menu", rowId: ".allmenu", description: "View all commands in one list" },
+                    { title: "Bot Status", rowId: ".ping", description: "Check bot response speed" },
+                    { title: "System Info", rowId: ".uptime", description: "See how long bot has been active" }
                 ]
             },
             {
-                title: "📥 DOWNLOADER",
+                title: "📥 MEDIA DOWNLOADER",
                 rows: [
-                    { title: "YouTube Menu", rowId: `${config.PREFIX}yt`, description: "Download YT Audio/Video" },
-                    { title: "Social Media", rowId: `${config.PREFIX}social`, description: "FB, TikTok, IG" }
+                    { title: "YouTube", rowId: ".ytmenu", description: "Download YT Audio/Video" },
+                    { title: "Social Media", rowId: ".social", description: "TikTok, FB, Insta, Twitter" }
                 ]
             },
             {
-                title: "🤖 AI & TOOLS",
+                title: "🤖 AI CHATBOTS",
                 rows: [
-                    { title: "ChatGPT", rowId: `${config.PREFIX}ai`, description: "Uliza chochote" },
-                    { title: "Imagine", rowId: `${config.PREFIX}imagine`, description: "Tengeneza picha" }
-                ]
-            },
-            {
-                title: "⚙️ SETTINGS",
-                rows: [
-                    { title: "Owner Info", rowId: `${config.PREFIX}owner`, description: "Wasiliana na Boss" },
-                    { title: "Restart", rowId: `${config.PREFIX}restart`, description: "Washa bot upya" }
+                    { title: "ChatGPT", rowId: ".ai", description: "Chat with GPT-4 Model" },
+                    { title: "AI Image", rowId: ".imagine", description: "Generate images from text" }
                 ]
             }
         ];
 
         const listMessage = {
-            text: `\n*RAHEEM-XMD BOTTOM INTERFACE* ⚡\n\n_Bofya kitufe cha "BONYEZA HAPA" hapo chini ili kuona kundi la command unazotaka._\n`,
+            text: `\n*RAHEEM-XMD INTERFACE* ⚡\n\n*User:* @${m.sender.split('@')[0]}\n*Status:* Premium\n\n_Click the button below to view categories._\n`,
             footer: "© RAHEEM-TECH PRESTIGE",
-            title: "〔 MASTER PANEL 〕",
-            buttonText: "BONYEZA HAPA 📑",
+            title: "〔 MENU SELECTION 〕",
+            buttonText: "SELECT HERE 📑",
             sections
         };
 
-        // Tunatuma kama List Message
         await conn.sendMessage(from, listMessage, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        // Kama list itagoma (baadhi ya matoleo ya WA yanazingua), inatuma text ya kinyamwezi
-        reply("*RAHEEM-XMD SELECT*\n\n1. .menu\n2. .ping\n3. .owner\n\n_Reply na namba upate huduma._");
+        reply("❌ System Error! Please try again.");
     }
 });
