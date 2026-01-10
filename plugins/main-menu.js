@@ -3,52 +3,57 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu2",
-    alias: ["buttons", "panel"],
-    desc: "Interactive command menu",
+    desc: "Open bottom list menu",
     category: "menu",
-    react: "🔘",
+    react: "🔽",
     filename: __filename
 }, async (conn, mek, m, { from, reply }) => {
     try {
-        const menuHeader = `
-*RAHEEM-XMD : INTERACTIVE* ⚡
-_Select a button below to navigate_
-
-👤 *User:* @${m.sender.split('@')[0]}
-🛠️ *Prefix:* ${config.PREFIX}
-📂 *Status:* Online
-`;
-
-        // Huu ndio muundo wa Button za kinyamwezi
-        const buttons = [
-            { buttonId: `${config.PREFIX}menu`, buttonText: { displayText: '🏠 MAIN MENU' }, type: 1 },
-            { buttonId: `${config.PREFIX}ping`, buttonText: { displayText: '🚀 SPEED TEST' }, type: 1 },
-            { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: '👤 OWNER INFO' }, type: 1 }
+        const sections = [
+            {
+                title: "🏠 NYUMBANI",
+                rows: [
+                    { title: "Bot Status", rowId: `${config.PREFIX}ping`, description: "Angalia kasi ya bot" },
+                    { title: "Main Menu", rowId: `${config.PREFIX}menu`, description: "Commands zote hapa" }
+                ]
+            },
+            {
+                title: "📥 DOWNLOADER",
+                rows: [
+                    { title: "YouTube Menu", rowId: `${config.PREFIX}yt`, description: "Download YT Audio/Video" },
+                    { title: "Social Media", rowId: `${config.PREFIX}social`, description: "FB, TikTok, IG" }
+                ]
+            },
+            {
+                title: "🤖 AI & TOOLS",
+                rows: [
+                    { title: "ChatGPT", rowId: `${config.PREFIX}ai`, description: "Uliza chochote" },
+                    { title: "Imagine", rowId: `${config.PREFIX}imagine`, description: "Tengeneza picha" }
+                ]
+            },
+            {
+                title: "⚙️ SETTINGS",
+                rows: [
+                    { title: "Owner Info", rowId: `${config.PREFIX}owner`, description: "Wasiliana na Boss" },
+                    { title: "Restart", rowId: `${config.PREFIX}restart`, description: "Washa bot upya" }
+                ]
+            }
         ];
 
-        const buttonMessage = {
-            image: { url: "https://files.catbox.moe/8s7lxh.jpg" },
-            caption: menuHeader,
+        const listMessage = {
+            text: `\n*RAHEEM-XMD BOTTOM INTERFACE* ⚡\n\n_Bofya kitufe cha "BONYEZA HAPA" hapo chini ili kuona kundi la command unazotaka._\n`,
             footer: "© RAHEEM-TECH PRESTIGE",
-            buttons: buttons,
-            headerType: 4,
-            contextInfo: {
-                mentionedJid: [m.sender],
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363399470975987@newsletter',
-                    newsletterName: "R A H E E M - X M D",
-                    serverMessageId: 1
-                }
-            }
+            title: "〔 MASTER PANEL 〕",
+            buttonText: "BONYEZA HAPA 📑",
+            sections
         };
 
-        return await conn.sendMessage(from, buttonMessage, { quoted: mek });
+        // Tunatuma kama List Message
+        await conn.sendMessage(from, listMessage, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        // Ikitokea simu ya mtumiaji haisupport Buttons, itatuma menu ya kawaida
-        reply("❌ Error! Simu yako inaweza kuwa haisupport mfumo wa Buttons.");
+        // Kama list itagoma (baadhi ya matoleo ya WA yanazingua), inatuma text ya kinyamwezi
+        reply("*RAHEEM-XMD SELECT*\n\n1. .menu\n2. .ping\n3. .owner\n\n_Reply na namba upate huduma._");
     }
 });
