@@ -3,42 +3,35 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Open the modern list menu",
-    category: "menu2",
-    react: "🔽",
+    desc: "English Interactive Menu",
+    category: "menu",
+    react: "📑",
     filename: __filename
 }, async (conn, mek, m, { from, reply }) => {
     try {
         const sections = [
             {
-                title: "🏠 HOME STATION",
+                title: "PREMIUM SELECTIONS",
                 rows: [
-                    { title: "Main Menu", rowId: ".allmenu", description: "View all commands in one list" },
-                    { title: "Bot Status", rowId: ".ping", description: "Check bot response speed" },
-                    { title: "System Info", rowId: ".uptime", description: "See how long bot has been active" }
+                    { title: "Main Menu", rowId: `${config.PREFIX}allmenu`, description: "Show all available commands" },
+                    { title: "Check Speed", rowId: `${config.PREFIX}ping`, description: "Monitor bot latency" },
+                    { title: "Owner Info", rowId: `${config.PREFIX}owner`, description: "Contact the developer" }
                 ]
             },
             {
-                title: "📥 MEDIA DOWNLOADER",
+                title: "DOWNLOAD CENTER",
                 rows: [
-                    { title: "YouTube", rowId: ".ytmenu", description: "Download YT Audio/Video" },
-                    { title: "Social Media", rowId: ".social", description: "TikTok, FB, Insta, Twitter" }
-                ]
-            },
-            {
-                title: "🤖 AI CHATBOTS",
-                rows: [
-                    { title: "ChatGPT", rowId: ".ai", description: "Chat with GPT-4 Model" },
-                    { title: "AI Image", rowId: ".imagine", description: "Generate images from text" }
+                    { title: "YouTube DL", rowId: `${config.PREFIX}yts`, description: "Search and download from YT" },
+                    { title: "Social Media", rowId: `${config.PREFIX}tiktok`, description: "Download videos from TikTok/FB/IG" }
                 ]
             }
         ];
 
         const listMessage = {
-            text: `\n*RAHEEM-XMD INTERFACE* ⚡\n\n*User:* @${m.sender.split('@')[0]}\n*Status:* Premium\n\n_Click the button below to view categories._\n`,
-            footer: "© RAHEEM-TECH PRESTIGE",
-            title: "〔 MENU SELECTION 〕",
-            buttonText: "SELECT HERE 📑",
+            text: `\n*RAHEEM-XMD INTERFACE* ⚡\n\n*User:* @${m.sender.split('@')[0]}\n*Mode:* ${config.MODE}\n\n_Select an option from the list below._\n`,
+            footer: "© RAHEEM-TECH 2026",
+            title: "〔 DASHBOARD 〕",
+            buttonText: "TAP TO OPEN 🔓",
             sections
         };
 
@@ -46,6 +39,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        reply("❌ System Error! Please try again.");
+        reply("❌ Critical Error: Unable to load List Menu.");
     }
 });
