@@ -19,7 +19,7 @@ cmd({
   ▫️ *prefix:* ${config.PREFIX}
 
 *〔 🏠 MAIN 〕*
-  ┃ ◦ .ping
+  ┃ > ◦ .ping
   ┃ ◦ .speed
   ┃ ◦ .alive
   ┃ ◦ .uptime
@@ -30,7 +30,7 @@ cmd({
   ┃ ◦ .id
 
 *〔 📥 DOWNLOAD 〕*
-  ┃ ◦ .facebook
+  ┃ > ◦ .facebook
   ┃ ◦ .tiktok
   ┃ ◦ .instagram
   ┃ ◦ .twitter
