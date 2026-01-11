@@ -1,8 +1,4 @@
-*✅ COMMAND GENERATED!* 
 
-*Jina:* channel
-
-```javascript
 const { cmd } = require('../command');
 
 cmd({
@@ -20,4 +16,5 @@ cmd({
         reply("❌ Error!");
     }
 });
-```
+
+
