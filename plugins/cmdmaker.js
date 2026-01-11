@@ -2,47 +2,39 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "makecmd",
-    alias: ["cmdmaker", "gen-cmd"],
-    desc: "Tengeneza kodi za maandishi (Text) kwa ajili ya plugins.",
+    desc: "Tengeneza kodi bila makosa ya syntax.",
     category: "owner",
     react: "🛠️",
     filename: __filename
-}, async (conn, mek, m, { from, args, q, reply }) => {
+}, async (conn, mek, m, { from, q, reply }) => {
     try {
-        if (!q) return reply("*Mortal-Kombat-XR Command Maker* 🛠️\n\n*Matumizi:* `.makecmd jina:maelezo`\n\n*Mfano:* `.makecmd picha:itume picha ya simba` ");
+        if (!q || !q.includes(':')) return reply("❌ Tumia hivi: .makecmd jina:maelezo");
 
-        const data = q.split(':');
-        if (data.length < 2) return reply("❌ Tafadhali tumia format hii -> `jina:kazi` ");
+        const [name, ...descParts] = q.split(':');
+        const cmdName = name.trim().toLowerCase();
+        const cmdDesc = descParts.join(':').trim();
 
-        const cmdName = data[0].trim().toLowerCase();
-        const cmdDesc = data[1].trim();
-
-        // Tunatengeneza kodi hapa
-        const generatedCode = `const { cmd } = require('../command');
+        const code = `const { cmd } = require('../command');
 
 cmd({
     pattern: "${cmdName}",
     desc: "${cmdDesc}",
-    category: "generated",
-    react: "🔥",
+    category: "manual",
+    react: "✅",
     filename: __filename
-}, async (conn, mek, m, { from, reply, q }) => {
+}, async (conn, mek, m, { from, reply }) => {
     try {
-        // Hii command imetengenezwa na MK-XR Maker
-        return reply("Hii ni command ya ${cmdName} imefanikiwa!");
+        await reply("Hii command ya ${cmdName} inafanya kazi!");
     } catch (e) {
-        console.log(e);
-        reply("❌ Error!");
+        console.error(e);
     }
 });`;
 
-        // TUNATUMIA 'conn.sendMessage' BADALA YA 'reply' ILI KUEPUKA AUTO-VOICE
         await conn.sendMessage(from, { 
-            text: `*✅ COMMAND GENERATED!* \n\n*Jina:* ${cmdName}\n\n\`\`\`javascript\n${generatedCode}\n\`\`\`\n\n> *Nakili (Copy) maandishi hayo hapo juu na uweke kwenye file jipya.*` 
+            text: `*✅ KODI TAYARI (Copy yote hapa chini):*\n\n\`\`\`javascript\n${code}\n\`\`\`` 
         }, { quoted: mek });
 
     } catch (e) {
-        console.error(e);
-        reply("❌ System Crash!");
+        reply("❌ Kuna tatizo limetokea!");
     }
 });
