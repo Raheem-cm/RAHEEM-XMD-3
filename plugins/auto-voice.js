@@ -1,18 +1,18 @@
 const { cmd } = require('../command');
 
-// --- NEW STABLE LINKS ---
+// --- SETTINGS ---
 const voiceData = {
-    "hello": "https://github.com/PRINCE-GDS/THE-PRINCE-BOT/raw/main/Voices/hello.mp3",
-    "mambo": "https://github.com/PRINCE-GDS/THE-PRINCE-BOT/raw/main/Voices/mambo.mp3",
-    "bot": "https://github.com/PRINCE-GDS/THE-PRINCE-BOT/raw/main/Voices/bot.mp3",
-    "test": "https://github.com/PRINCE-GDS/THE-PRINCE-BOT/raw/main/Voices/test.mp3"
+    "hello": "https://files.catbox.moe/7p8shf.mp3",
+    "mambo": "https://files.catbox.moe/nettm1.mp3",
+    "bot": "https://files.catbox.moe/6hfp3a.mp3",
+    "test": "https://files.catbox.moe/7p8shf.mp3"
 };
 
 cmd({
-    on: "body" 
-}, async (conn, mek, m, { body, from, isCmd }) => {
+    on: "body" // This makes the bot listen to every message
+}, async (conn, mek, m, { body, from, isGroup, isCmd }) => {
     try {
-        if (!body || isCmd) return; 
+        if (!body || isCmd) return; // Don't trigger if it's a command
 
         const text = body.toLowerCase();
 
@@ -20,24 +20,24 @@ cmd({
             if (text.includes(key)) {
                 await conn.sendMessage(from, {
                     audio: { url: voiceData[key] },
-                    mimetype: 'audio/mpeg', // Changed to mpeg for better compatibility
-                    ptt: true 
+                    mimetype: 'audio/mp4',
+                    ptt: true // Sends as a Voice Note
                 }, { quoted: mek });
-                break; 
+                break; // Stop after finding one match
             }
         }
     } catch (e) {
-        console.log("Audio Error: ", e);
+        console.log(e);
     }
 });
 
-// STATUS COMMAND
+// COMMAND TO CHECK STATUS
 cmd({
     pattern: "autovoice",
-    desc: "Check system status",
+    desc: "Check auto-voice status",
     category: "owner",
-    react: "✅",
+    react: "🎤",
     filename: __filename
 }, async (conn, mek, m, { reply }) => {
-    return reply("*R A H E E M - X M D   V O I C E* 🎙️\n\n*Status:* `Fix Applied` ✅\n*Mimetype:* `audio/mpeg`\n\n> *Try typing 'hello' now.*");
+    return reply("*R A H E E M - X M D   V O I C E* 🎙️\n\n*Status:* `System Online` ✅\n*Keywords:* `hello, mambo, bot, test`\n\n> *v1.0.0 Stable*");
 });
