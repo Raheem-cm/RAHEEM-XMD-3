@@ -2,7 +2,7 @@ const { cmd } = require('../command');
 const axios = require('axios');
 
 cmd({
-    pattern: "videomake",
+    pattern: "mememake",
     desc: "Animated text (GIF fallback)",
     category: "video",
     react: "🎬",
