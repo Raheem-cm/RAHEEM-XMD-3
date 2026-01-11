@@ -1,7 +1,7 @@
  const config = require('../config');
 const { cmd } = require('../command');
 
-const MUSIC_URL = "https://files.catbox.moe/o919rq.mp3"; // Customize if needed
+const MUSIC_URL = "https://files.catbox.moe/nettm1.mp3"; // Customize if needed
 
 cmd({
     pattern: "ping",
