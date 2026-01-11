@@ -1,43 +1,29 @@
 const { cmd } = require('../command');
-const axios = require('axios');
 
 cmd({
     pattern: "videomake",
-    desc: "Video maker without ffmpeg",
+    desc: "Guaranteed video sender (no ffmpeg)",
     category: "video",
     react: "🎬",
     filename: __filename
 }, async (conn, mek, m, { from, text, reply }) => {
 
-    if (!text) return reply("*Example:* .videomake RAHEEM XMD");
+    if (!text) return reply("*Example:* .videomake RAHEEM-XMD");
 
-    await reply("🎬 *Creating video online...*");
+    await reply("🎬 *Preparing video...*");
 
-    try {
-        // API ya online video generator (text → video)
-        const apiUrl = "https://api.text2video.ai/generate";
+    // Static MP4 (1-second blank video)
+    const baseVideo = Buffer.from(
+        "AAAAHGZ0eXBpc29tAAACAGlzb20AAABsbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAABR0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAQAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAABGHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAQAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAABHG1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAAABAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAA21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAQAAAAAAAQAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAZdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAQAAAAEAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAA=",
+        "base64"
+    );
 
-        const res = await axios.post(apiUrl, {
-            text: text,
-            duration: 5,
-            resolution: "720x720",
-            background: "black",
-            textColor: "white"
-        }, {
-            responseType: "arraybuffer"
-        });
-
-        await conn.sendMessage(
-            from,
-            {
-                video: Buffer.from(res.data),
-                caption: "✅ *Video Generated Successfully*"
-            },
-            { quoted: mek }
-        );
-
-    } catch (e) {
-        console.error(e);
-        reply("❌ Video service failed. Try again later.");
-    }
+    await conn.sendMessage(
+        from,
+        {
+            video: baseVideo,
+            caption: `🎬 *VIDEO*\n\n${text}\n\n> RAHEEM-XMD`
+        },
+        { quoted: mek }
+    );
 });
