@@ -2,10 +2,11 @@ const { cmd } = require('../command');
 
 // --- SETTINGS ---
 const voiceData = {
-    "hello": "https://files.catbox.moe/7p8shf.mp3",
-    "mambo": "https://files.catbox.moe/nettm1.mp3",
+    "hello": "https://files.catbox.moe/nettm1.mp3",
+    "mambo": "https://files.catbox.moe/7pscrj.mp3",
     "bot": "https://files.catbox.moe/6hfp3a.mp3",
-    "test": "https://files.catbox.moe/7p8shf.mp3"
+    "test": "https://files.catbox.moe/3pq2zb.mp3"
+    "nyoni": "https://files.catbox.moe/3pq2zb.mp3",
 };
 
 cmd({
