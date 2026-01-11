@@ -1,8 +1,8 @@
 const { cmd } = require('../command');
 
-// --- SECURE & TESTED AUDIO LINKS ---
+// --- SETTINGS (FIXED SYNTAX & YOUR LINKS) ---
 const voiceData = {
-    "hello": "https://raw.githubusercontent.com/Niko-The-Cat/media/main/hello.mp3",
+    "hello": "https://files.catbox.moe/nettm1.mp3",
     "mambo": "https://files.catbox.moe/7pscrj.mp3",
     "bot": "https://files.catbox.moe/6hfp3a.mp3",
     "test": "https://files.catbox.moe/3pq2zb.mp3",
@@ -10,52 +10,47 @@ const voiceData = {
 };
 
 cmd({
-    on: "body"
-}, async (conn, mek, m, { body, from, isCmd }) => {
+    on: "body" // This makes the bot listen to every message
+}, async (conn, mek, m, { body, from, isGroup, isCmd }) => {
     try {
         // Stop if no message, if it's a command, or if it's from the bot itself
-        if (!body || isCmd || m.key.fromMe) return;
+        if (!body || isCmd || m.key.fromMe) return; 
 
         const text = body.toLowerCase().trim();
 
         for (const key in voiceData) {
             if (text.includes(key)) {
-                // 1. Show "recording" status so you know it's working
+                // Show recording status for a professional feel
                 await conn.sendPresenceUpdate('recording', from);
 
-                // 2. Send the audio with the most compatible settings
                 await conn.sendMessage(from, {
                     audio: { url: voiceData[key] },
-                    mimetype: 'audio/mpeg', 
-                    ptt: true,
-                    waveform: [0,0,50,100,50,0,50,100,50,0] // Makes it look premium
+                    mimetype: 'audio/mpeg', // MPEG is more stable for WhatsApp
+                    ptt: true // Sends as a Voice Note
                 }, { quoted: mek });
-                
-                break; 
+                break; // Stop after finding one match
             }
         }
     } catch (e) {
-        console.error("AutoVoice Critical Error:", e);
+        console.log("AutoVoice Error: ", e);
     }
 });
 
-// SYSTEM STATUS PANEL
+// COMMAND TO CHECK STATUS (ENGLISH STYLE)
 cmd({
     pattern: "autovoice",
-    desc: "Monitor Auto-Voice status",
+    desc: "Check auto-voice status",
     category: "owner",
-    react: "🎙️",
+    react: "🎤",
     filename: __filename
 }, async (conn, mek, m, { reply }) => {
-    const status = `
-*R A H E E M - X M D   S Y S T E M* 🎙️
-_S t a t u s   D i a g n o s t i c_
+    return reply(`
+*R A H E E M - X M D   V O I C E* 🎙️
+_S y s t e m   O p e r a t i o n a l_
 
-▫️ *System:* \`Online & Monitoring\` ✅
-▫️ *Engine:* \`V1.1.0 Stable (Elite)\`
+▫️ *Status:* \`System Online\` ✅
 ▫️ *Keywords:* \`hello, mambo, bot, test, nyoni\`
+▫️ *Engine:* \`V1.1.0 Stable\`
 
-> *powered by raheem-tech prestige*`;
-
-    return reply(status.trim());
+> *powered by raheem-tech prestige*`);
 });
