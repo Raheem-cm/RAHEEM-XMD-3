@@ -1,67 +1,43 @@
 const { cmd } = require('../command');
 
-// --- DATABASE: KEYWORDS & AUDIO LINKS ---
-const voiceDatabase = {
+// --- SETTINGS ---
+const voiceData = {
     "hello": "https://files.catbox.moe/mydizf.mp3",
+    "mambo": "https://files.catbox.moe/nettm1.mp3",
     "bot": "https://files.catbox.moe/nettm1.mp3",
-    "raheem": "https://files.catbox.moe/nettm1.mp3",
-    "owner": "https://files.catbox.moe/7p8shf.mp3",
-    "system": "https://files.catbox.moe/nettm1.mp3"
+    "test": "https://files.catbox.moe/7p8shf.mp3"
 };
 
-// Global Switch
-let isAutoVoiceActive = true; 
+cmd({
+    on: "body" // This makes the bot listen to every message
+}, async (conn, mek, m, { body, from, isGroup, isCmd }) => {
+    try {
+        if (!body || isCmd) return; // Don't trigger if it's a command
 
-// LISTENER MIDDLEWARE
-module.exports.middleware = async (conn, mek, m, { body, from }) => {
-    if (!isAutoVoiceActive || !body) return false;
+        const text = body.toLowerCase();
 
-    const input = body.toLowerCase();
-
-    for (const keyword in voiceDatabase) {
-        if (input.includes(keyword)) {
-            await conn.sendMessage(from, {
-                audio: { url: voiceDatabase[keyword] },
-                mimetype: 'audio/mp4',
-                ptt: true // Sends as a Voice Note (Blue Mic)
-            }, { quoted: mek });
-            return true; 
+        for (const key in voiceData) {
+            if (text.includes(key)) {
+                await conn.sendMessage(from, {
+                    audio: { url: voiceData[key] },
+                    mimetype: 'audio/mp4',
+                    ptt: true // Sends as a Voice Note
+                }, { quoted: mek });
+                break; // Stop after finding one match
+            }
         }
+    } catch (e) {
+        console.log(e);
     }
-    return false;
-};
+});
 
-// MANAGEMENT COMMAND
+// COMMAND TO CHECK STATUS
 cmd({
     pattern: "autovoice",
-    alias: ["av"],
-    desc: "Manage automatic voice responses.",
+    desc: "Check auto-voice status",
     category: "owner",
-    react: "🎙️",
+    react: "🎤",
     filename: __filename
-}, async (conn, mek, m, { from, text, reply, prefix }) => {
-    // Only the bot owner can trigger this
-    if (!m.key.fromMe) return reply("*ACCESS DENIED* ❌");
-
-    if (!text) return reply(`
-*R A H E E M - X M D   V O I C E* 🎙️
-_S y s t e m   C o n t r o l_
-
-▫️ *Status:* ${isAutoVoiceActive ? 'ACTIVE' : 'DISABLED'}
-▫️ *Usage:* ▸ \`${prefix}autovoice on\`
-  ▸ \`${prefix}autovoice off\`
-
-> *powered by raheem-tech*`);
-
-    const action = text.toLowerCase();
-
-    if (action === 'on') {
-        isAutoVoiceActive = true;
-        return reply(`*AUTO-VOICE ENABLED* ✅\n_The system is now responding to keywords._`);
-    }
-
-    if (action === 'off') {
-        isAutoVoiceActive = false;
-        return reply(`*AUTO-VOICE DISABLED* ❌\n_The system is now silent._`);
-    }
+}, async (conn, mek, m, { reply }) => {
+    return reply("*R A H E E M - X M D   V O I C E* 🎙️\n\n*Status:* `System Online` ✅\n*Keywords:* `hello, mambo, bot, test`\n\n> *v1.0.0 Stable*");
 });
