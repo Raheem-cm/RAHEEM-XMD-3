@@ -1,58 +1,40 @@
 const { cmd } = require('../command');
-const Jimp = require('jimp');
 const axios = require('axios');
 
 cmd({
     pattern: "meme",
-    desc: "Meme Maker with your own image",
+    desc: "Safe meme on image",
     category: "fun",
     react: "😂",
     filename: __filename
 }, async (conn, mek, m, { from, text, reply, quoted }) => {
+    if (!text && !quoted) return reply("Send image with .meme <text>");
 
-    if (!text && !quoted) return reply("*Usage:* send an image with caption:\n.meme Your text here");
-
-    await reply("😂 *Generating meme...*");
+    await reply("😂 *Generating meme safely...*");
 
     try {
-        let imageBuffer;
+        let imageUrl;
 
-        // Get image from quoted or attached
         if (quoted && quoted.imageMessage) {
-            const url = await conn.downloadMediaMessage(quoted);
-            imageBuffer = url;
-        } else {
-            return reply("❌ Please send an image with your text!");
+            imageUrl = await conn.downloadMediaMessage(quoted, "buffer");
+            // Upload to temp image host if needed (catbox, imgbb etc)
+            // For demo we assume user provides a URL
+            return reply("❌ On self-hosted image, API upload required. Use text only method first.");
         }
 
-        const image = await Jimp.read(imageBuffer);
+        // Safe text only meme
+        const chunks = text.match(/.{1,80}/g).join("\n");
+        const url = `https://api.memegen.link/images/custom/_/${encodeURIComponent(chunks)}.png?background=https://i.imgur.com/Z6a9F5B.png&font=impact`;
 
-        // Load font
-        const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+        const img = await axios.get(url, { responseType: "arraybuffer" });
 
-        // Split text into multiple lines
-        const lines = text.match(/.{1,40}/g); // 40 chars per line
-        let y = 10;
-
-        lines.forEach((line) => {
-            image.print(font, 10, y, {
-                text: line,
-                alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-                alignmentY: Jimp.VERTICAL_ALIGN_TOP
-            }, image.bitmap.width - 20); // width margin
-            y += 40;
-        });
-
-        const buffer = await image.getBufferAsync(Jimp.MIME_JPEG);
-
-        await conn.sendMessage(
-            from,
-            { image: buffer, caption: `😂 *MEME READY*\n> RAHEEM-XMD` },
-            { quoted: mek }
-        );
+        await conn.sendMessage(from, {
+            image: Buffer.from(img.data),
+            caption: "😂 *MEME READY*\n> RAHEEM-XMD"
+        }, { quoted: mek });
 
     } catch (err) {
-        console.log("MEME ERROR:", err);
+        console.log("MEME ERROR:", err.message);
         reply("❌ Meme failed but bot is SAFE.");
     }
 });
