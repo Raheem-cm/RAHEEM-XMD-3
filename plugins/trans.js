@@ -3,35 +3,56 @@ const axios = require('axios');
 
 cmd({
     pattern: "trans",
-    alias: ["currency"],
-    desc: "Convert money with live rates.",
+    alias: ["currency", "convert"],
+    desc: "Convert money with live exchange rates",
     category: "tools",
     react: "💰",
     filename: __filename
-}, async (conn, mek, m, { from, args, reply }) => {
+}, async (conn, mek, m, { args, reply }) => {
     try {
-        if (args.length < 4) return reply("❌ *Use:* .trans 2000 TSH to KSH");
+        // mfano sahihi: .trans 2000 TSH to KSH
+        if (args.length !== 4 || args[2].toLowerCase() !== "to") {
+            return reply("❌ *Use format:*\n.trans 2000 TSH to KSH");
+        }
 
-        const amount = parseFloat(args[0]);
+        const amount = Number(args[0]);
         const fromCur = args[1].toUpperCase();
         const toCur = args[3].toUpperCase();
 
-        await reply(`⏳ *Converting ${amount} ${fromCur}...*`);
-
-        // API mbadala ambayo ni imara zaidi
-        const url = `https://api.exchangerate-api.com/v4/latest/${fromCur}`;
-        const res = await axios.get(url);
-        
-        if (res.data && res.data.rates) {
-            const rate = res.data.rates[toCur];
-            if (rate) {
-                const total = (amount * rate).toFixed(2);
-                return reply(`✅ *CONVERSION SUCCESS*\n\n💰 *${amount} ${fromCur}* = *${total} ${toCur}*\n📊 *Rate:* ${rate}\n\n> *RAHEEM-XMD SYSTEM*`);
-            }
+        if (isNaN(amount)) {
+            return reply("❌ Amount must be a number");
         }
-        
-        reply("❌ Currency code not supported.");
-    } catch (e) {
-        reply("❌ Service busy. Try again after a few minutes.");
+
+        await reply(`⏳ *Converting ${amount} ${fromCur} → ${toCur}*`);
+
+        // API imara (hakihitaji API KEY)
+        const url = `https://open.er-api.com/v6/latest/${fromCur}`;
+        const res = await axios.get(url);
+
+        if (res.data.result !== "success") {
+            return reply("❌ Failed to fetch exchange rates.");
+        }
+
+        const rate = res.data.rates[toCur];
+        if (!rate) {
+            return reply("❌ Currency not supported.");
+        }
+
+        const total = (amount * rate).toFixed(2);
+
+        return reply(
+`✅ *CONVERSION SUCCESS*
+
+💰 ${amount} ${fromCur}
+➡️ ${total} ${toCur}
+
+📊 Rate: ${rate}
+
+> *RAHEEM-XMD SYSTEM*`
+        );
+
+    } catch (err) {
+        console.error(err);
+        reply("❌ Service temporarily unavailable. Try again later.");
     }
 });
