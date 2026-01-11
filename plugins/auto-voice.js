@@ -1,8 +1,12 @@
 const { cmd } = require('../command');
 
-// --- SETTINGS (FIXED SYNTAX) ---
+/**
+ * R A H E E M - X M D   E L I T E   A U T O V O I C E
+ * Fixed Syntax and Optimized Audio Delivery
+ */
+
 const voiceData = {
-    "hello": "https://files.catbox.moe/nettm1.mp3",
+    "hello": "https://raw.githubusercontent.com/Niko-The-Cat/media/main/hello.mp3",
     "mambo": "https://files.catbox.moe/7pscrj.mp3",
     "bot": "https://files.catbox.moe/6hfp3a.mp3",
     "test": "https://files.catbox.moe/3pq2zb.mp3",
@@ -10,43 +14,47 @@ const voiceData = {
 };
 
 cmd({
-    on: "body" 
+    on: "body"
 }, async (conn, mek, m, { body, from, isCmd }) => {
     try {
-        if (!body || isCmd || m.key.fromMe) return; 
+        // Prevent bot from replying to itself or other commands
+        if (!body || isCmd || m.key.fromMe) return;
 
-        const text = body.toLowerCase();
+        const text = body.toLowerCase().trim();
 
         for (const key in voiceData) {
             if (text.includes(key)) {
+                // IMPORTANT: Use 'audio/mpeg' for best compatibility
                 await conn.sendMessage(from, {
                     audio: { url: voiceData[key] },
-                    mimetype: 'audio/mpeg', // Fixed mimetype for stability
+                    mimetype: 'audio/mpeg', 
                     ptt: true 
                 }, { quoted: mek });
                 break; 
             }
         }
     } catch (e) {
-        console.log("AutoVoice Error: ", e);
+        console.error("Critical Error in AutoVoice:", e);
     }
 });
 
-// STATUS COMMAND (ENGLISH PRESTIGE)
+// STATUS PANEL (PRESTIGE UI)
 cmd({
     pattern: "autovoice",
-    desc: "Check system status",
+    desc: "Check system operational status",
     category: "owner",
-    react: "🎤",
+    react: "🎙️",
     filename: __filename
 }, async (conn, mek, m, { reply }) => {
-    return reply(`
+    const statusMsg = `
 *R A H E E M - X M D   V O I C E* 🎙️
 _S y s t e m   O p e r a t i o n a l_
 
 ▫️ *Status:* \`System Online\` ✅
+▫️ *Engine:* \`V1.0.5 Stable (Fix)\`
 ▫️ *Keywords:* \`hello, mambo, bot, test, nyoni\`
-▫️ *Engine:* \`V1.0.0 Stable\`
 
-> *powered by raheem-tech*`);
+> *powered by raheem-tech*`;
+
+    return reply(statusMsg.trim());
 });
