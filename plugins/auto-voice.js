@@ -2,7 +2,7 @@ const { cmd } = require('../command');
 
 // --- DATABASE: KEYWORDS & AUDIO LINKS ---
 const voiceDatabase = {
-    "hello": "https://files.catbox.moe/7p8shf.mp3",
+    "hello": "https://files.catbox.moe/mydizf.mp3",
     "bot": "https://files.catbox.moe/nettm1.mp3",
     "raheem": "https://files.catbox.moe/nettm1.mp3",
     "owner": "https://files.catbox.moe/7p8shf.mp3",
