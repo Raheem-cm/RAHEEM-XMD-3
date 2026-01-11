@@ -3,54 +3,35 @@ const axios = require('axios');
 
 cmd({
     pattern: "trans",
-    alias: ["currency", "rate"],
-    desc: "Convert money from one currency to another.",
+    alias: ["currency"],
+    desc: "Convert money with live rates.",
     category: "tools",
-    use: ".trans 2000 tsh to ksh",
     react: "💰",
     filename: __filename
 }, async (conn, mek, m, { from, args, reply }) => {
     try {
-        // Validation: Expecting format [amount] [from] to [to]
-        if (args.length < 4 || args[2].toLowerCase() !== "to") {
-            return reply("❌ *Format Error!*\n\n*Use:* .trans [amount] [from] to [to]\n*Example:* .trans 2000 TSH to KSH");
-        }
+        if (args.length < 4) return reply("❌ *Use:* .trans 2000 TSH to KSH");
 
         const amount = parseFloat(args[0]);
-        const fromCurrency = args[1].toUpperCase();
-        const toCurrency = args[3].toUpperCase();
+        const fromCur = args[1].toUpperCase();
+        const toCur = args[3].toUpperCase();
 
-        if (isNaN(amount)) return reply("❌ Please provide a valid number for the amount.");
+        await reply(`⏳ *Converting ${amount} ${fromCur}...*`);
 
-        await reply(`⏳ *Calculating exchange rate...*`);
-
-        // Fetching real-time exchange rate
-        // Note: Using a public free API for exchange rates
-        const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
-        const rate = response.data.rates[toCurrency];
-
-        if (!rate) {
-            return reply(`❌ Could not find currency code: *${toCurrency}*`);
+        // API mbadala ambayo ni imara zaidi
+        const url = `https://api.exchangerate-api.com/v4/latest/${fromCur}`;
+        const res = await axios.get(url);
+        
+        if (res.data && res.data.rates) {
+            const rate = res.data.rates[toCur];
+            if (rate) {
+                const total = (amount * rate).toFixed(2);
+                return reply(`✅ *CONVERSION SUCCESS*\n\n💰 *${amount} ${fromCur}* = *${total} ${toCur}*\n📊 *Rate:* ${rate}\n\n> *RAHEEM-XMD SYSTEM*`);
+            }
         }
-
-        const convertedAmount = (amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const lastUpdate = response.data.date;
-
-        const resultMsg = `
-┏━〔 *CURRENCY CONVERTER* 〕━┓
-┃
-┃ 💵 *From:* ${amount.toLocaleString()} ${fromCurrency}
-┃ 🇰🇪 *To:* ${convertedAmount} ${toCurrency}
-┃ 📊 *Rate:* 1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}
-┃ 🕒 *Date:* ${lastUpdate}
-┃
-┗━━━━━━━━━━━━━━┛
-> *© RAHEEM-XMD SYSTEM*`;
-
-        return await reply(resultMsg);
-
+        
+        reply("❌ Currency code not supported.");
     } catch (e) {
-        console.error(e);
-        reply("❌ *Error:* Service unavailable or invalid currency code. Ensure you use codes like TSH, KSH, USD, UGX.");
+        reply("❌ Service busy. Try again after a few minutes.");
     }
 });
