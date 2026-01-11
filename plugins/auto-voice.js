@@ -7,7 +7,7 @@ const voiceData = {
     "bot": "https://files.catbox.moe/6hfp3a.mp3",
     "test": "https://files.catbox.moe/3pq2zb.mp3"
     "nyoni": "https://files.catbox.moe/3pq2zb.mp3",
-};
+ };
 
 cmd({
     on: "body" // This makes the bot listen to every message
@@ -40,5 +40,5 @@ cmd({
     react: "🎤",
     filename: __filename
 }, async (conn, mek, m, { reply }) => {
-    return reply("*R A H E E M - X M D   V O I C E* 🎙️\n\n*Status:* `System Online` ✅\n*Keywords:* `hello, mambo, bot, test`\n\n> *v1.0.0 Stable*");
+    return reply("*R A H E E M - X M D   V O I C E* 🎙️\n\n*Status:* `System Online` ✅\n*Keywords:* `hello, mambo, bot, test, nyoni`\n\n> *v1.0.0 Stable*");
 });
