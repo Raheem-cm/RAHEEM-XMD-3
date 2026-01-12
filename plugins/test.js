@@ -2,7 +2,7 @@
 const { cmd } = require('../command');
 
 cmd({
-    pattern: "news",
+    pattern: "newss",
     desc: 'Send the latest channel updates',
     category: "generated",
     react: "✅",
