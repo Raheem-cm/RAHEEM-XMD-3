@@ -2,9 +2,9 @@ const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
-    pattern: "menu",
+    pattern: "menu2",
     desc: "Show bottom menu",
-    category: "menu",
+    category: "menu2",
     react: "🔥",
     filename: __filename
 }, async (conn, mek, m, { from, pushName }) => {
