@@ -1,34 +1,72 @@
- const config = require('../config')
-const { cmd, commands } = require('../command')
+const { cmd } = require("../command");
+const config = require("../config");
+const fetch = require("node-fetch");
 
-cmd({
-    pattern: "chb",
-    alias: ["chatbot"],
-    desc: "Kuwasha au kuzima chatbot kwenye magroup.",
-    category: "owner",
-    use: '.chb on/off',
-    filename: __filename
-},
-async (conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, text, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
-    try {
-        // Hakikisha anayewasha ni Admin au Owner
-        if (!isGroup) return reply("Hii command inafanya kazi kwenye group tu!")
-        if (!isOwner && !isAdmins) return reply("Hii ni kwa ajili ya Admins tu!")
+// === AI Chatbot Event Handler (GROUP AI) ===
+cmd({ on: "body" }, async (client, message, chat, { from, body, isGroup, isCmd }) => {
+  try {
+    // Logic: Inafanya kazi ikiwa ni GROUP, AI ipo ON, siyo Command, na siyo meseji yako mwenyewe
+    if (config.AUTO_AI === "true" && isGroup && !isCmd && !message.key.fromMe && body) {
+      
+      // Onyesha bot inaandika (Typing...)
+      await client.sendPresenceUpdate('composing', from);
 
-        if (args[0] === "on") {
-            if (config.GROUP_CHATBOT === true) return reply("Chatbot tayari imeshawashwa kwenye magroup yote! ✅")
-            config.GROUP_CHATBOT = true
-            return reply("*CHATBOT IMEWASHWA* 🤖✅\n\nSasa bot itakuwa inajibu meseji kwenye magroup yote.")
-        } else if (args[0] === "off") {
-            if (config.GROUP_CHATBOT === false) return reply("Chatbot tayari imeshazimwa! ❌")
-            config.GROUP_CHATBOT = false
-            return reply("*CHATBOT IMEZIMWA* 🤖❌\n\nBot haitajibu tena meseji za kawaida kwenye magroup.")
-        } else {
-            return reply("*MATUMIZI:* \n\n◦ `.chb on` - Kuwasha Chatbot\n◦ `.chb off` - Kuzima Chatbot")
-        }
+      // Fetching from the David Cyril API
+      const apiUrl = `https://apis.davidcyriltech.my.id/ai/chatbot?query=${encodeURIComponent(body)}&apikey=`;
+      
+      const response = await fetch(apiUrl);
+      const data = await response.json();
 
-    } catch (e) {
-        console.log(e)
-        reply("Kuna hitilafu imetokea: " + e)
+      if (data.status === 200 || data.success) {
+        const aiReply = data.result;
+
+        // Jibu meseji kwenye group
+        await client.sendMessage(from, {
+          text: `${aiReply}\n\n> © ʀᴀʜᴇᴇᴍ xᴍᴅ ᴀɪ 🤖`
+        }, { quoted: message });
+      }
     }
-})
+  } catch (error) {
+    console.error("❌ Group Chatbot Error:", error);
+  }
+});
+
+// === Chatbot Toggle Command (chb on/off) ===
+cmd({
+  pattern: "chb",
+  alias: ["chatbot", "aichat"],
+  desc: "Washa au Zima Group AI Chatbot",
+  category: "owner",
+  react: "🤖",
+  filename: __filename,
+  fromMe: true
+},
+async (client, message, m, { isOwner, from, args, isAdmins }) => {
+  try {
+    // Inaruhusu Owner au Admin wa group kubadili setting
+    if (!isOwner && !isAdmins) return; 
+
+    const action = args[0]?.toLowerCase();
+
+    if (action === 'on') {
+        config.AUTO_AI = "true";
+        await client.sendMessage(from, {
+            image: { url: "https://files.catbox.moe/kiy0hl.jpg" },
+            caption: "✅ *Group AI Chatbot Activated!*\nSasa nitajibu meseji zote kwenye group hili."
+        }, { quoted: message });
+    } else if (action === 'off') {
+        config.AUTO_AI = "false";
+        await client.sendMessage(from, {
+            image: { url: "https://files.catbox.moe/kiy0hl.jpg" },
+            caption: "❌ *Group AI Chatbot Deactivated.*"
+        }, { quoted: message });
+    } else {
+        await client.sendMessage(from, {
+            text: `🤖 *Group Chatbot Status:* ${config.AUTO_AI === "true" ? "ON" : "OFF"}\n\n_Tumia .chb on kuwasha au .chb off kuzima_`
+        }, { quoted: message });
+    }
+
+  } catch (error) {
+    console.error("❌ Chatbot command error:", error);
+  }
+});
