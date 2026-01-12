@@ -3,52 +3,62 @@ const { cmd, commands } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Inaonyesha menu ya vitufe (buttons).",
+    desc: "Inaonyesha list menu yenye machaguo mengi.",
     category: "main",
-    react: "🔘",
+    react: "📑",
     filename: __filename
 }, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, pushname, reply }) => {
     try {
-        // Maandishi ya juu (Body text)
-        const bodyText = `Hujambo ${pushname}!\n\nChagua chaguo hapa chini kutumia RAHEEM-XMD V3.`;
-
-        // Mpangilio wa vitufe (Buttons)
-        const buttons = [
+        const sections = [
             {
-                buttonId: `${config.PREFIX}allmenu`,
-                buttonText: { displayText: '📑 VIEW OPTIONS' },
-                type: 1
+                title: "🏠 NYUMBANI",
+                rows: [
+                    { title: "PING", rowId: config.PREFIX + "ping", description: "Angalia kasi ya bot" },
+                    { title: "ALIVE", rowId: config.PREFIX + "alive", description: "Angalia kama bot iko hewani" }
+                ]
             },
             {
-                buttonId: `${config.PREFIX}repo`,
-                buttonText: { displayText: '📂 GITHUB REPO' },
-                type: 1
+                title: "📥 DOWNLOADER",
+                rows: [
+                    { title: "TIKTOK", rowId: config.PREFIX + "tiktok", description: "Download video za TikTok" },
+                    { title: "INSTAGRAM", rowId: config.PREFIX + "ig", description: "Download reels/picha za IG" },
+                    { title: "YOUTUBE", rowId: config.PREFIX + "yt", description: "Download video/audio za YT" }
+                ]
+            },
+            {
+                title: "⚙️ SETTINGS & INFO",
+                rows: [
+                    { title: "OWNER", rowId: config.PREFIX + "owner", description: "Wasiliana na mmiliki" },
+                    { title: "REPO", rowId: config.PREFIX + "repo", description: "Pata kodi ya bot (Script)" }
+                ]
             }
         ];
 
-        // Kutuma ujumbe wenye picha na vitufe
-        const buttonMessage = {
-            image: { url: "https://files.catbox.moe/c08e2d.mp4" }, // Unaweza kuweka picha hapa badala ya video kama unataka
-            caption: bodyText,
-            footer: "Powered by RAHEEM TECH",
-            buttons: buttons,
-            headerType: 4,
+        const listMessage = {
+            text: `Hujambo *${pushname}* 👋\n\nKaribu kwenye *RAHEEM-XMD V3*. Chagua huduma unayotaka hapa chini kwenye kitufe cha "VIEW OPTIONS".\n\n© ʀᴀʜᴇᴇᴍ ᴛᴇᴄʜ ᴘʀᴏᴊᴇᴄᴛs`,
+            footer: "Powered by RAHEEM-CM",
+            buttonText: "VIEW OPTIONS ☰",
+            sections,
             contextInfo: {
                 mentionedJid: [sender],
                 forwardingScore: 999,
                 isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363399470975987@newsletter',
-                    newsletterName: "R A H E E M - X M D",
-                    serverMessageId: 1
+                externalAdReply: {
+                    title: "RAHEEM-XMD V3 ADVANCED",
+                    body: "Powered by POPKID TECH",
+                    mediaType: 1,
+                    sourceUrl: "https://whatsapp.com/channel/0029Vaf98V62f3EG6oO98Y3I",
+                    thumbnailUrl: "https://files.catbox.moe/pe8tid.mp4", // Inatumia video yako kama thumbnail
+                    renderLargerThumbnail: true,
+                    showAdAttribution: true
                 }
             }
         };
 
-        await conn.sendMessage(from, buttonMessage, { quoted: mek });
+        return await conn.sendMessage(from, listMessage, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        reply("❌ Imeshindikana kutuma menu ya vitufe.");
+        reply("❌ Imeshindikana kufungua menu ya machaguo.");
     }
 });
