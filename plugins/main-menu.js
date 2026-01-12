@@ -1,64 +1,54 @@
 const config = require('../config');
-const { cmd } = require('../command');
+const { cmd, commands } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Show bottom menu",
-    category: "menu2",
-    react: "🔥",
+    desc: "Inaonyesha menu ya vitufe (buttons).",
+    category: "main",
+    react: "🔘",
     filename: __filename
-}, async (conn, mek, m, { from, pushName }) => {
+}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, pushname, reply }) => {
     try {
-        const bodyText = `👋 *Welcome ${pushName || "User"}*\n\n🤖 *${config.BOT_NAME || "RAHEEM-XMD"}*\n⚡ Fast • Smart • Powerful\n\nSelect a category below to explore my features:`;
+        // Maandishi ya juu (Body text)
+        const bodyText = `Hujambo ${pushname}!\n\nChagua chaguo hapa chini kutumia RAHEEM-XMD V3.`;
 
-        const message = {
-            interactiveMessage: {
-                header: {
-                    hasVideoMessage: false,
-                    hasImageMessage: true,
-                    imageMessage: (await conn.prepareMessageMedia({ image: { url: "https://files.catbox.moe/8s7lxh.jpg" } }, { upload: conn.waUploadToServer })).imageMessage,
-                    title: "",
-                    subtitle: "RAHEEM-XMD",
-                },
-                body: { text: bodyText },
-                footer: { text: "© RAHEEM-XMD-3 • 2026" },
-                nativeFlowMessage: {
-                    buttons: [
-                        {
-                            name: "quick_reply",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "📜 ALL MENU",
-                                id: ".allmenu"
-                            })
-                        },
-                        {
-                            name: "quick_reply",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "📥 DOWNLOAD",
-                                id: ".download"
-                            })
-                        },
-                        {
-                            name: "quick_reply",
-                            buttonParamsJson: JSON.stringify({
-                                display_text: "👥 GROUP",
-                                id: ".groupmenu"
-                            })
-                        }
-                    ],
+        // Mpangilio wa vitufe (Buttons)
+        const buttons = [
+            {
+                buttonId: `${config.PREFIX}allmenu`,
+                buttonText: { displayText: '📑 VIEW OPTIONS' },
+                type: 1
+            },
+            {
+                buttonId: `${config.PREFIX}repo`,
+                buttonText: { displayText: '📂 GITHUB REPO' },
+                type: 1
+            }
+        ];
+
+        // Kutuma ujumbe wenye picha na vitufe
+        const buttonMessage = {
+            image: { url: "https://files.catbox.moe/c08e2d.mp4" }, // Unaweza kuweka picha hapa badala ya video kama unataka
+            caption: bodyText,
+            footer: "Powered by RAHEEM TECH",
+            buttons: buttons,
+            headerType: 4,
+            contextInfo: {
+                mentionedJid: [sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363399470975987@newsletter',
+                    newsletterName: "R A H E E M - X M D",
+                    serverMessageId: 1
                 }
             }
         };
 
-        // Tunatuma kama viewOnce ili ionekane vizuri kwenye matoleo yote
-        await conn.relayMessage(from, {
-            viewOnceMessage: {
-                message: message
-            }
-        }, {});
+        await conn.sendMessage(from, buttonMessage, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ System Error: Buttons are not supported on this version of WhatsApp." }, { quoted: mek });
+        reply("❌ Imeshindikana kutuma menu ya vitufe.");
     }
 });
