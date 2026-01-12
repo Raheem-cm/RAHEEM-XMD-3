@@ -1,148 +1,304 @@
 const config = require('../config');
-const { cmd } = require('../command');
+const { cmd, commands } = require('../command');
 
 cmd({
     pattern: "menu",
-    desc: "Clean vertical command list",
-    category: "menu",
+    desc: "Inaonyesha orodha ya amri zote za bot.",
+    category: "main",
     react: "📑",
     filename: __filename
-}, async (conn, mek, m, { from, text }) => {
+}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
-        
-        const menu = `
-*${config.BOT_NAME || 'RAHEEM-XMD'}* — _v1.0.0_
 
-*〔 👤 USER INFO 〕*
-  ▫️ *user:* @${m.sender.split('@')[0]}
-  ▫️ *mode:* ${config.MODE}
-  ▫️ *prefix:* ${config.PREFIX}
+        const menuText = ` 
+╭〔 *RAHEEM-XMD-3* 〕━┈
+┃
+┃ 👤 *User:* @${sender.split('@')[0]}
+┃ 👤 *Owner:* RAHEEM-CM
+┃ 📍 *Prefix:* ${config.PREFIX}
+┃ 🎛️ *Mode:* ${config.MODE}
+┃ ⚡ *Vers:* 1.0.0
+┃
+╰━━━━━━━━━━┈
 
-*〔 🏠 MAIN 〕*
-  ┃ ◦ .ping
-  ┃ ◦ .speed
-  ┃ ◦ .alive
-  ┃ ◦ .uptime
-  ┃ ◦ .owner
-  ┃ ◦ .repo
-  ┃ ◦ .restart
-  ┃ ◦ .today
-  ┃ ◦ .id
+*╭┈〔 🏠 MAIN 〕┈─*
+┃ ✧ \`,ping\`
+┃ ✧ \`,speed\`
+┃ ✧ \`,alive\`
+┃ ✧ \`,uptime\`
+┃ ✧ \`,owner\`
+┃ ✧ \`,repo\`
+┃ ✧ \`,menu\`
+┃ ✧ \`,restart\`
+┃ ✧ \`,today\`
+┃ ✧ \`,id\`
+┃ ✧ \`,advice\`
+┃ ✧ \`,cs\`
+┃ ✧ \`,inde\`
+┃ ✧ \`,bffs\`
+┃ ✧ \`,cf\`
+╰──────────┈
 
-*〔 📥 DOWNLOAD 〕*
-  ┃ ◦ .facebook
-  ┃ ◦ .tiktok
-  ┃ ◦ .instagram
-  ┃ ◦ .twitter
-  ┃ ◦ .mediafire
-  ┃ ◦ .apk
-  ┃ ◦ .img
-  ┃ ◦ .pins
-  ┃ ◦ .spotify
-  ┃ ◦ .play
-  ┃ ◦ .audio
-  ┃ ◦ .video
-  ┃ ◦ .ytmp3
-  ┃ ◦ .ytmp4
-  ┃ ◦ .gdrive
-  ┃ ◦ .tiks
+*╭┈〔 📥 DOWNLOAD 〕┈─*
+┃ ✧ \`,facebook\`
+┃ ✧ \`,tiktok\`
+┃ ✧ \`,instagram\`
+┃ ✧ \`,twitter\`
+┃ ✧ \`,mediafire\`
+┃ ✧ \`,apk\`
+┃ ✧ \`,img\`
+┃ ✧ \`,tt2\`
+┃ ✧ \`,pins\`
+┃ ✧ \`,apk2\`
+┃ ✧ \`,fb2\`
+┃ ✧ \`,pinterest\`
+┃ ✧ \`,spotify\`
+┃ ✧ \`,play4\`
+┃ ✧ \`,play2\`
+┃ ✧ \`,audio\`
+┃ ✧ \`,video\`
+┃ ✧ \`,video2\`
+┃ ✧ \`,ytmp3\`
+┃ ✧ \`,ytmp4\`
+┃ ✧ \`,song\`
+┃ ✧ \`,darama\`
+┃ ✧ \`,gdrive\`
+┃ ✧ \`,ssweb\`
+┃ ✧ \`,tiks\`
+╰──────────┈
 
-*〔 👥 GROUP 〕*
-  ┃ ◦ .kick
-  ┃ ◦ .add
-  ┃ ◦ .remove
-  ┃ ◦ .promote
-  ┃ ◦ .demote
-  ┃ ◦ .tagall
-  ┃ ◦ .hidetag
-  ┃ ◦ .mute
-  ┃ ◦ .unmute
-  ┃ ◦ .lock
-  ┃ ◦ .unlock
-  ┃ ◦ .link
-  ┃ ◦ .setwelcome
-  ┃ ◦ .setgoodbye
+*╭┈〔 👥 GROUP 〕┈─*
+┃ ✧ \`,grouplink\`
+┃ ✧ \`,kickall\`
+┃ ✧ \`,kickall2\`
+┃ ✧ \`,kickall3\`
+┃ ✧ \`,add\`
+┃ ✧ \`,remove\`
+┃ ✧ \`,kick\`
+┃ ✧ \`,promote\`
+┃ ✧ \`,demote\`
+┃ ✧ \`,dismiss\`
+┃ ✧ \`,revoke\`
+┃ ✧ \`,setgoodbye\`
+┃ ✧ \`,setwelcome\`
+┃ ✧ \`,delete\`
+┃ ✧ \`,getpic\`
+┃ ✧ \`,ginfo\`
+┃ ✧ \`,disappear\`
+┃ ✧ \`,allreq\`
+┃ ✧ \`,updategname\`
+┃ ✧ \`,updategdesc\`
+┃ ✧ \`,joinrequests\`
+┃ ✧ \`,senddm\`
+┃ ✧ \`,nikal\`
+┃ ✧ \`,mute\`
+┃ ✧ \`,unmute\`
+┃ ✧ \`,lockgc\`
+┃ ✧ \`,unlockgc\`
+┃ ✧ \`,invite\`
+┃ ✧ \`,tag\`
+┃ ✧ \`,hidetag\`
+┃ ✧ \`,tagall\`
+┃ ✧ \`,tagadmins\`
+╰───────────┈
 
-*〔 🤖 AI & TOOLS 〕*
-  ┃ ◦ .ai
-  ┃ ◦ .gpt4
-  ┃ ◦ .meta
-  ┃ ◦ .blackbox
-  ┃ ◦ .bing
-  ┃ ◦ .imagine
-  ┃ ◦ .copilot
-  ┃ ◦ .luma
+*╭┈〔 🎉 FUN 〕┈─*
+┃ ✧ \`,shapar\`
+┃ ✧ \`,rate\`
+┃ ✧ \`,insult\`
+┃ ✧ \`,hack\`
+┃ ✧ \`,ship\`
+┃ ✧ \`,character\`
+┃ ✧ \`,pickup\`
+┃ ✧ \`,joke\`
+┃ ✧ \`,hrt\`
+┃ ✧ \`,hpy\`
+┃ ✧ \`,syd\`
+┃ ✧ \`,anger\`
+┃ ✧ \`,shy\`
+┃ ✧ \`,kiss\`
+┃ ✧ \`,mon\`
+┃ ✧ \`,cunfuzed\`
+┃ ✧ \`,setpp\`
+┃ ✧ \`,hand\`
+┃ ✧ \`,nikal\`
+┃ ✧ \`,hold\`
+┃ ✧ \`,hug\`
+┃ ✧ \`,hifi\`
+┃ ✧ \`,poke\`
+╰──────────────┈
 
-*〔 🔄 CONVERT 〕*
-  ┃ ◦ .sticker
-  ┃ ◦ .fancy
-  ┃ ◦ .tomp3
-  ┃ ◦ .tts
-  ┃ ◦ .trt
-  ┃ ◦ .url
-  ┃ ◦ .base64
+*╭┈〔 👑 OWNER 〕┈─*
+┃ ✧ \`,owner\`
+┃ ✧ \`,menu\`
+┃ ✧ \`,menu2\`
+┃ ✧ \`,vv\`
+┃ ✧ \`,listcmd\`
+┃ ✧ \`,allmenu\`
+┃ ✧ \`,repo\`
+┃ ✧ \`,block\`
+┃ ✧ \`,unblock\`
+┃ ✧ \`,fullpp\`
+┃ ✧ \`,setpp\`
+┃ ✧ \`,restart\`
+┃ ✧ \`,shutdown\`
+┃ ✧ \`,updatecmd\`
+┃ ✧ \`,alive\`
+┃ ✧ \`,ping\`
+┃ ✧ \`,gjid\`
+┃ ✧ \`,jid\`
+╰──────────┈
 
-*〔 🎌 ANIME 〕*
-  ┃ ◦ .waifu
-  ┃ ◦ .neko
-  ┃ ◦ .loli
-  ┃ ◦ .naruto
-  ┃ ◦ .animenews
-  ┃ ◦ .foxgirl
+*╭┈〔 🤖 AI 〕┈*
+┃ ✧ \`,ai\`
+┃ ✧ \`,gpt3\`
+┃ ✧ \`,gpt2\`
+┃ ✧ \`,gptmini\`
+┃ ✧ \`,gpt\`
+┃ ✧ \`,meta\`
+┃ ✧ \`,blackbox\`
+┃ ✧ \`,luma\`
+┃ ✧ \`,dj\`
+┃ ✧ \`,khan\`
+┃ ✧ \`,jawad\`
+┃ ✧ \`,gpt4\`
+┃ ✧ \`,bing\`
+┃ ✧ \`,imagine\`
+┃ ✧ \`,imagine2\`
+┃ ✧ \`,copilot\`
+╰──────────┈
 
-*〔 🎉 FUN & GAME 〕*
-  ┃ ◦ .hack
-  ┃ ◦ .ship
-  ┃ ◦ .rate
-  ┃ ◦ .joke
-  ┃ ◦ .insult
-  ┃ ◦ .character
-  ┃ ◦ .pickup
+*╭┈〔 🎌 ANIME 〕┈─*
+┃ ✧ \`,fack\`
+┃ ✧ \`,truth\`
+┃ ✧ \`,dare\`
+┃ ✧ \`,dog\`
+┃ ✧ \`,awoo\`
+┃ ✧ \`,garl\`
+┃ ✧ \`,waifu\`
+┃ ✧ \`,neko\`
+┃ ✧ \`,megnumin\`
+┃ ✧ \`,maid\`
+┃ ✧ \`,loli\`
+┃ ✧ \`,animegirl\`
+┃ ✧ \`,animegirl1\`
+┃ ✧ \`,animegirl2\`
+┃ ✧ \`,animegirl3\`
+┃ ✧ \`,animegirl4\`
+┃ ✧ \`,animegirl5\`
+┃ ✧ \`,anime1\`
+┃ ✧ \`,anime2\`
+┃ ✧ \`,anime3\`
+┃ ✧ \`,anime4\`
+┃ ✧ \`,anime5\`
+┃ ✧ \`,animenews\`
+┃ ✧ \`,foxgirl\`
+┃ ✧ \`,naruto\`
+╰──────────┈
 
-*〔 💞 REACTIONS 〕*
-  ┃ ◦ .hug
-  ┃ ◦ .kiss
-  ┃ ◦ .slap
-  ┃ ◦ .kill
-  ┃ ◦ .smile
-  ┃ ◦ .cry
-  ┃ ◦ .pat
-  ┃ ◦ .blush
+*╭┈〔 🔄 CONVERT 〕┈─*
+┃ ✧ \`,sticker\`
+┃ ✧ \`,sticker2\`
+┃ ✧ \`,emojimix\`
+┃ ✧ \`,fancy\`
+┃ ✧ \`,take\`
+┃ ✧ \`,tomp3\`
+┃ ✧ \`,tts\`
+┃ ✧ \`,trt\`
+┃ ✧ \`,base64\`
+┃ ✧ \`,unbase64\`
+┃ ✧ \`,binary\`
+┃ ✧ \`,dbinary\`
+┃ ✧ \`,tinyurl\`
+┃ ✧ \`,urldecode\`
+┃ ✧ \`,urlencode\`
+┃ ✧ \`,url\`
+┃ ✧ \`,repeat\`
+┃ ✧ \`,ask\`
+┃ ✧ \`,readmore\`
+╰──────────┈
 
-*〔 📌 OTHERS 〕*
-  ┃ ◦ .weather
-  ┃ ◦ .news
-  ┃ ◦ .wikipedia
-  ┃ ◦ .calculate
-  ┃ ◦ .pair
-  ┃ ◦ .yts
-  ┃ ◦ .logo
+*╭┈〔 📌 OTHER 〕┈─*
+┃ ✧ \`,timenow\`
+┃ ✧ \`,date\`
+┃ ✧ \`,count\`
+┃ ✧ \`,calculate\`
+┃ ✧ \`,countx\`
+┃ ✧ \`,flip\`
+┃ ✧ \`,coinflip\`
+┃ ✧ \`,rcolor\`
+┃ ✧ \`,roll\`
+┃ ✧ \`,fact\`
+┃ ✧ \`,cpp\`
+┃ ✧ \`,rw\`
+┃ ✧ \`,pair\`
+┃ ✧ \`,pair2\`
+┃ ✧ \`,pair3\`
+┃ ✧ \`,fancy\`
+┃ ✧ \`,logo\`
+┃ ✧ \`,define\`
+┃ ✧ \`,news\`
+┃ ✧ \`,movie\`
+┃ ✧ \`,weather\`
+┃ ✧ \`,srepo\`
+┃ ✧ \`,insult\`
+┃ ✧ \`,save\`
+┃ ✧ \`,wikipedia\`
+┃ ✧ \`,gpass\`
+┃ ✧ \`,githubstalk\`
+┃ ✧ \`,yts\`
+┃ ✧ \`,ytv\`
+╰─────────┈
 
-*──*
-> *© raheem tech projects*
+*╭┈〔 💞 REACTIONS 〕┈─*
+┃ ✧ \`,bully\`
+┃ ✧ \`,cuddle\`
+┃ ✧ \`,cry\`
+┃ ✧ \`,hug\`
+┃ ✧ \`,awoo\`
+┃ ✧ \`,kiss\`
+┃ ✧ \`,lick\`
+┃ ✧ \`,pat\`
+┃ ✧ \`,smug\`
+┃ ✧ \`,bonk\`
+┃ ✧ \`,yeet\`
+┃ ✧ \`,blush\`
+┃ ✧ \`,smile\`
+┃ ✧ \`,wave\`
+┃ ✧ \`,highfive\`
+┃ ✧ \`,handhold\`
+┃ ✧ \`,nom\`
+┃ ✧ \`,bite\`
+┃ ✧ \`,glomp\`
+┃ ✧ \`,slap\`
+┃ ✧ \`,kill\`
+┃ ✧ \`,happy\`
+┃ ✧ \`,wink\`
+┃ ✧ \`,poke\`
+┃ ✧ \`,https\`
+┃ ✧ \`,cringe\`
+╰──────────┈
+──
+© ʀᴀʜᴇᴇᴍ ᴛᴇᴄʜ ᴘʀᴏᴊᴇᴄᴛs
 `;
 
-        await conn.sendMessage(
-            from,
-            {
-                video: { url: "https://files.catbox.moe/c08e2d.mp4" },
-                caption: menu.trim(),
-                contextInfo: {
-                    mentionedJid: [m.sender],
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363399470975987@newsletter',
-                        newsletterName: "R A H E E M - X M D",
-                        serverMessageId: 1
-                    }
+        await conn.sendMessage(from, {
+            video: { url: "https://files.catbox.moe/c08e2d.mp4" },
+            caption: menuText.trim(),
+            contextInfo: {
+                mentionedJid: [m.sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363399470975987@newsletter',
+                    newsletterName: "R A H E E M - X M D",
+                    serverMessageId: 1
                 }
-            },
-            { quoted: mek }
-        );
+            }
+        }, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        await conn.sendMessage(from, { text: "❌ system failure." }, { quoted: mek });
+        reply("❌ Kulitokea hitilafu kwenye mfumo.");
     }
 });
