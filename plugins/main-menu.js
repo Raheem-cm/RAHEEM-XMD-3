@@ -3,49 +3,56 @@ const { cmd, commands } = require('../command');
 
 cmd({
     pattern: "menu2",
-    desc: "Inaonyesha list menu ya machaguo yote.",
+    desc: "Displays an organized interactive list menu.",
     category: "main",
     react: "📑",
     filename: __filename
 }, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, pushname, reply }) => {
     try {
-        // Hapa ndipo unapoandaa list ya machaguo (Sections)
         const sections = [
             {
                 title: "🏠 MAIN COMMANDS",
                 rows: [
-                    { title: "PING", rowId: ".ping", description: "Angalia kasi ya bot" },
-                    { title: "ALIVE", rowId: ".alive", description: "Angalia kama bot iko hewani" },
-                    { title: "UPTIME", rowId: ".uptime", description: "Muda ambao bot imekuwa hewani" }
+                    { title: "PING", rowId: config.PREFIX + "ping", description: "Check bot response speed" },
+                    { title: "ALIVE", rowId: config.PREFIX + "alive", description: "Check if the bot is online" },
+                    { title: "UPTIME", rowId: config.PREFIX + "uptime", description: "See how long the bot has been running" },
+                    { title: "OWNER", rowId: config.PREFIX + "owner", description: "Contact the developer" }
                 ]
             },
             {
                 title: "📥 DOWNLOADER",
                 rows: [
-                    { title: "TIKTOK", rowId: ".tiktok", description: "Download video za TikTok" },
-                    { title: "INSTAGRAM", rowId: ".instagram", description: "Download Reels/Picha" },
-                    { title: "YOUTUBE", rowId: ".yt", description: "Download YT Video/Audio" }
+                    { title: "SOCIAL MEDIA", rowId: config.PREFIX + "list download", description: "FB, IG, TikTok, Twitter downloaders" },
+                    { title: "YOUTUBE", rowId: config.PREFIX + "yt", description: "Download YT Video and Audio" },
+                    { title: "FILES/APK", rowId: config.PREFIX + "apk", description: "Download apps and documents" }
                 ]
             },
             {
-                title: "🤖 AI & TOOLS",
+                title: "👥 GROUP MANAGEMENT",
                 rows: [
-                    { title: "AI", rowId: ".ai", description: "Ongea na ChatGPT" },
-                    { title: "IMAGINE", rowId: ".imagine", description: "Tengeneza picha kwa AI" }
+                    { title: "ADMIN TOOLS", rowId: config.PREFIX + "list group", description: "Kick, Add, Promote, Mute tools" },
+                    { title: "TAG ALL", rowId: config.PREFIX + "tagall", description: "Mention everyone in the group" }
                 ]
             },
             {
-                title: "👑 OWNER & INFO",
+                title: "🤖 AI & CONVERT",
                 rows: [
-                    { title: "OWNER", rowId: ".owner", description: "Wasiliana na RAHEEM-CM" },
-                    { title: "REPO", rowId: ".repo", description: "Pata Script ya bot" }
+                    { title: "AI CHAT", rowId: config.PREFIX + "ai", description: "Chat with GPT models" },
+                    { title: "STICKER", rowId: config.PREFIX + "sticker", description: "Convert image/video to sticker" }
+                ]
+            },
+            {
+                title: "🎌 ANIME & FUN",
+                rows: [
+                    { title: "ANIME", rowId: config.PREFIX + "list anime", description: "Waifu, Neko, and Anime news" },
+                    { title: "GAMES", rowId: config.PREFIX + "list fun", description: "Rate, Ship, and Fun commands" }
                 ]
             }
         ];
 
         const listMessage = {
-            text: `Hujambo *${pushname}* 👋\n\nKaribu kwenye *RAHEEM-XMD V3*. Chagua kategoria unayotaka hapa chini kutumia amri zetu kwa urahisi.\n\n© ʀᴀʜᴇᴇᴍ ᴛᴇᴄʜ ᴘʀᴏᴊᴇᴄᴛs`,
-            footer: "ᴘᴏᴡᴇʀᴇᴅ ʙʏ ʀᴀʜᴇᴇᴍ-ᴄᴍ",
+            text: `*Hello ${pushname}!* 👋\n\nWelcome to *RAHEEM-XMD V3*. Please click the button below to view all available command categories.\n\n*User:* @${sender.split('@')[0]}\n*Mode:* ${config.MODE}\n*Prefix:* ${config.PREFIX}`,
+            footer: "© RAHEEM TECH PROJECTS",
             buttonText: "VIEW OPTIONS ☰",
             sections,
             contextInfo: {
@@ -54,10 +61,10 @@ cmd({
                 isForwarded: true,
                 externalAdReply: {
                     title: "RAHEEM-XMD V3 ADVANCED",
-                    body: "ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴘᴏᴘᴋɪᴅ ᴛᴇᴄʜ",
+                    body: "POWERED BY RAHEEM-CM",
                     mediaType: 1,
                     sourceUrl: "https://whatsapp.com/channel/0029Vaf98V62f3EG6oO98Y3I",
-                    thumbnailUrl: "https://files.catbox.moe/6vej91.mp4", // Inatumia video yako kama picha ya juu
+                    thumbnailUrl: "https://files.catbox.moe/6vej91.mp4",
                     renderLargerThumbnail: true,
                     showAdAttribution: true
                 }
@@ -68,6 +75,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        reply("❌ Mfumo umeshindwa kufungua menu ya machaguo.");
+        reply("❌ Error: The system failed to load the list menu.");
     }
 });
