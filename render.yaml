@@ -1,10 +1,17 @@
 services:
   - type: web
     name: raheem-xmd-3
-    env: node
+    runtime: docker
     plan: free
-    buildCommand: npm install
-    startCommand: node index.js
+    region: oregon
     envVars:
-      - key: NODE_VERSION
-        value: 20.0.0
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_ID
+        value: "" # You can add your session ID here or leave it for pairing
+    healthCheckPath: /
+    autoDeploy: true
+
+# This configures the build to use your Dockerfile automatically
