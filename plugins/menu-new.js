@@ -283,7 +283,7 @@ cmd({
 `;
 
         await conn.sendMessage(from, {
-            image: { url: "" },
+            image: { url: ppUrl },
             caption: menuText.trim(),
             contextInfo: {
                 mentionedJid: [m.sender],
