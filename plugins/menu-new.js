@@ -299,6 +299,6 @@ cmd({
 
     } catch (e) {
         console.log(e);
-        reply("❌ Kulitokea hitilafu kwenye mfumo.");
+        reply("❌ cmd has error tell dev nyoni by using ask cmd then request you needs.");
     }
 });
