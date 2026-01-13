@@ -1,79 +1,86 @@
 const { cmd } = require('../command');
 const yts = require('yt-search');
-const fetch = require('node-fetch'); // Hakikisha ume-install: npm install node-fetch
+const axios = require('axios'); // Hakikisha axios ipo, kama huna piga: npm install axios
 
 cmd({
     pattern: "yt2",
     alias: ["play", "music"],
     react: "🎧",
-    desc: "Premium YouTube Downloader with Buttons",
+    desc: "YouTube Downloader Fixed",
     category: "download",
     use: ".yt2 <song name>",
     filename: __filename
 }, async (conn, m, mek, { from, q, reply }) => {
     try {
-        if (!q) return await reply("❌ *Tafadhali weka jina la wimbo au URL!*");
+        if (!q) return await reply("❌ *Tafadhali weka jina la wimbo!*");
 
         const search = await yts(q);
         const data = search.videos[0];
-        if (!data) return await reply("❌ *Sijapata matokeo!*");
+        if (!data) return await reply("❌ *Sikupata chochote!*");
 
-        const fancyMsg = `\`\`\`𝐘𝐎𝐔𝐓𝐔𝐁𝐄 𝐏𝐋𝐀𝐘𝐄𝐑\`\`\`
-        
+        const fancyMsg = `
+╔══════════════╗
+     ♪  *𝐘𝐎𝐔𝐓𝐔𝐁𝐄  𝐏𝐋𝐀𝐘𝐄𝐑* ♪
+╠══════════════╣
   ➪ *ᴛɪᴛʟᴇ:* ${data.title}
   ➪ *ᴅᴜʀᴀᴛɪᴏɴ:* ${data.timestamp}
   ➪ *ᴠɪᴇᴡꜱ:* ${data.views.toLocaleString()}
+╠══════════════╣
+        *CHAGUA FORMAT:*
+  
+  [1] ➪ 𝐀𝐮𝐝𝐢𝐨 (𝐌𝐮𝐬𝐢𝐜) 🎵
+  [2] ➪ 𝐕𝐢𝐝𝐞𝐨 (𝐌𝐏𝟒) 🎥
+╚══════════════╝
+*Jibu na namba 1 au 2 kupata file lako*`;
 
-*Chagua format ya kudownload:*`;
-
-        // Hapa tunatuma Buttons
-        const buttons = [
-            { buttonId: `audio_${data.url}`, buttonText: { displayText: '🎧 Audio' }, type: 1 },
-            { buttonId: `video_${data.url}`, buttonText: { displayText: '📽️ Video' }, type: 1 }
-        ];
-
+        // Tuma picha na maelezo
         const sentMsg = await conn.sendMessage(from, { 
             image: { url: data.thumbnail }, 
-            caption: fancyMsg,
-            footer: '𝕭𝖑𝖆𝖈𝖐 𝕮𝖑𝖔𝖛𝖊𝖗 ☘︎ | ⚔️🥷',
-            buttons: buttons,
-            headerType: 4
+            caption: fancyMsg 
         }, { quoted: mek });
 
-        // Hii ndio Logic inayopokea jibu la Button ndani ya file hilihili
+        // Sikiliza jibu la mtumiaji
         conn.ev.on('messages.upsert', async (msgUpdate) => {
             const msg = msgUpdate.messages[0];
-            if (!msg.message) return;
-
-            // Angalia kama mtumiaji amebonyeza button
-            const selection = msg.message.buttonsResponseMessage?.selectedButtonId;
+            if (!msg.message || msg.key.remoteJid !== from) return;
             
-            if (selection && (selection === `audio_${data.url}` || selection === `video_${data.url}`)) {
-                await m.react('📥');
+            const userText = (msg.message.conversation || msg.message.extendedTextMessage?.text || "").trim();
+            const isReply = msg.message.extendedTextMessage?.contextInfo?.stanzaId === sentMsg.key.id;
+
+            if (isReply && (userText === "1" || userText === "2")) {
+                await conn.sendMessage(from, { react: { text: '📥', key: msg.key } });
                 
-                // API uliyotoa
-                const type = selection.startsWith('audio') ? 'ytmp3' : 'ytmp4';
+                const type = userText === "1" ? 'ytmp3' : 'ytmp4';
                 const apiUrl = `https://api.davidcyriltech.my.id/download/${type}?url=${encodeURIComponent(data.url)}`;
                 
-                const response = await fetch(apiUrl);
-                const json = await response.json();
-                
-                if (!json.success) return await reply("❌ *API Error! Jaribu baadae.*");
+                try {
+                    const response = await axios.get(apiUrl);
+                    const res = response.data;
+                    
+                    if (!res.success) return await reply("❌ *API imekataa, jaribu tena!*");
 
-                const dlUrl = json.result.download_url;
+                    const dlUrl = res.result.download_url;
 
-                if (type === 'ytmp3') {
-                    await conn.sendMessage(from, { audio: { url: dlUrl }, mimetype: 'audio/mpeg' }, { quoted: msg });
-                } else {
-                    await conn.sendMessage(from, { video: { url: dlUrl }, caption: data.title }, { quoted: msg });
+                    if (type === 'ytmp3') {
+                        await conn.sendMessage(from, { 
+                            audio: { url: dlUrl }, 
+                            mimetype: 'audio/mpeg' 
+                        }, { quoted: msg });
+                    } else {
+                        await conn.sendMessage(from, { 
+                            video: { url: dlUrl }, 
+                            caption: data.title 
+                        }, { quoted: msg });
+                    }
+                    await conn.sendMessage(from, { react: { text: '✅', key: msg.key } });
+                } catch (err) {
+                    await reply("❌ *Hitilafu ya API!*");
                 }
-                await m.react('✅');
             }
         });
 
     } catch (e) {
         console.error(e);
-        reply("❌ *Hitilafu imetokea!*");
+        reply("❌ *Kuna tatizo limetokea!*");
     }
 });
-                
