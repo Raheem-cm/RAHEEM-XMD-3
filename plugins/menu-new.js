@@ -283,7 +283,7 @@ cmd({
 `;
 
         await conn.sendMessage(from, {
-            gif: { url: "https://files.catbox.moe/c08e2d.mp4" },
+            Gif: { url: "https://files.catbox.moe/c08e2d.mp4" },
             caption: menuText.trim(),
             contextInfo: {
                 mentionedJid: [m.sender],
