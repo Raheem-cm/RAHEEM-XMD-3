@@ -283,7 +283,7 @@ cmd({
 `;
 
         await conn.sendMessage(from, {
-            image: { url: "https://files.catbox.moe/1xbnu5.jpg" },
+            image: { url: "https://ibb.co/6JvKyCkQ" },
             caption: menuText.trim(),
             contextInfo: {
                 mentionedJid: [m.sender],
