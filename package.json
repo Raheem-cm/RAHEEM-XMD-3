@@ -6,8 +6,11 @@
   "scripts": {
     "start": "node index.js"
   },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
-    "@whiskeysockets/baileys": "5.0.0",
+    "@whiskeysockets/baileys": "^6.6.0",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@dark-yasiya/yt-dl.js": "1.0.5",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
